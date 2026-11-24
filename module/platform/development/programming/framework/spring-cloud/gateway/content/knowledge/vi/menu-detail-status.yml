@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Cloud Gateway là gì và bài toán cổng vào API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vai trò của gateway trong kiến trúc microservices
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Các khái niệm route, predicate, filter và dịch vụ phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Luồng yêu cầu từ client qua gateway đến dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt API gateway, reverse proxy, load balancer và service mesh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Các trách nhiệm dùng chung và ranh giới nghiệp vụ tại gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Gateway dùng chung, gateway theo miền và Backend for Frontend
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Lợi ích, chi phí vận hành và trường hợp không cần gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: versions-variants-001
     title: Phân biệt Gateway Server và Proxy Exchange
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: versions-variants-002
     title: So sánh Server WebFlux với Server Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: versions-variants-003
     title: Chọn phiên bản Java, Spring Boot và Spring Cloud Release Train tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: versions-variants-004
     title: Quản lý dependency bằng BOM và tránh trộn phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: versions-variants-005
     title: Đối chiếu tên starter và tiền tố cấu hình giữa các dòng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: versions-variants-006
     title: Phạm vi hỗ trợ predicate, filter và giao thức của từng biến thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: versions-variants-007
     title: Phân biệt tài liệu bản ổn định với preview và snapshot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: versions-variants-008
     title: Lập bảng tính năng trước khi chọn kiến trúc gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
   childs:
   - slug: webflux-foundation-001
     title: Mô hình xử lý không chặn của Spring WebFlux và Reactor Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-002
     title: Mono, Flux và cách biểu diễn yêu cầu HTTP bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-003
     title: ServerWebExchange, ServerHttpRequest và ServerHttpResponse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-004
     title: Tính bất biến và cơ chế mutate request hoặc exchange
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-005
     title: Event loop và tác động của lời gọi chặn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-006
     title: Backpressure và truyền nội dung HTTP theo luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-007
     title: Reactor Context và truyền dữ liệu xuyên chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: webflux-foundation-008
     title: Truyền lỗi, hủy xử lý và quản lý vòng đời tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
   childs:
   - slug: setup-001
     title: Tạo ứng dụng Gateway Server WebFlux tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: setup-002
     title: Khai báo starter phù hợp bằng Maven hoặc Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: setup-003
     title: Kiểm tra classpath và tránh xung đột web stack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: setup-004
     title: Dựng dịch vụ phía sau để quan sát yêu cầu được chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: setup-005
     title: Khai báo tuyến đầu tiên bằng application.yml
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: setup-006
     title: Khai báo tuyến đầu tiên bằng Java RouteLocatorBuilder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: setup-007
     title: Tách cấu hình theo môi trường và sử dụng biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: setup-008
     title: Chạy thử và kiểm chứng đường dẫn, header, body và mã phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
   childs:
   - slug: request-processing-architecture-001
     title: Gateway Handler Mapping và quá trình chọn tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-002
     title: Filtering Web Handler và chuỗi bộ lọc của tuyến đã chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-003
     title: Các giai đoạn trước và sau khi gọi dịch vụ phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-004
     title: RouteDefinition, Route và quá trình chuyển đổi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-005
     title: RouteDefinitionLocator, RouteLocator và bộ nhớ đệm tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-006
     title: Vai trò của RouteToRequestUrlFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-007
     title: NettyRoutingFilter và NettyWriteResponseFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-008
     title: 'ForwardRoutingFilter và chuyển tiếp nội bộ bằng forward:'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-009
     title: Exchange attributes cho tuyến, URL gốc và URL đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: request-processing-architecture-010
     title: Ranh giới giữa WebFilter, Spring Security filter và GatewayFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
   childs:
   - slug: route-configuration-001
     title: Các trường id, uri, order, predicates, filters và metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: route-configuration-002
     title: 'URI đích với http:, https:, lb:, ws:, wss: và forward: theo khả năng hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: route-configuration-003
     title: Ý nghĩa đường dẫn trong URI đích và cấu hình rewrite riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: route-configuration-004
     title: Cú pháp rút gọn so với khai báo name và args đầy đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: route-configuration-005
     title: Java DSL và kết hợp điều kiện and, or, negate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: route-configuration-006
     title: Thứ tự ưu tiên khi nhiều tuyến cùng khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: route-configuration-007
     title: Tuyến tổng quát, tuyến chuyên biệt và nguy cơ bắt nhầm yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: route-configuration-008
     title: Biến URI được trích xuất từ Path hoặc Host
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: route-configuration-009
     title: Default filters và phạm vi áp dụng cho các tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: route-configuration-010
     title: Metadata riêng của tuyến và giới hạn cấu hình phụ thuộc phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
   childs:
   - slug: route-predicates-001
     title: 'Path: mẫu đường dẫn, biến URI và dấu gạch chéo cuối'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: route-predicates-002
     title: 'Host: khớp tên miền, tên miền con và biến mẫu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: route-predicates-003
     title: 'Method: chọn tuyến theo một hoặc nhiều HTTP method'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: route-predicates-004
     title: 'Header: kiểm tra header và biểu thức chính quy'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: route-predicates-005
     title: 'Query: kiểm tra tên và giá trị query parameter'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: route-predicates-006
     title: 'Cookie: điều kiện trên tên và giá trị cookie'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: route-predicates-007
     title: 'After, Before và Between: định tuyến theo thời gian và múi giờ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: route-predicates-008
     title: 'RemoteAddr: địa chỉ IP, CIDR và bộ phân giải địa chỉ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: route-predicates-009
     title: XForwardedRemoteAddr và giới hạn tin cậy proxy theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: route-predicates-010
     title: 'Weight: chia lưu lượng theo nhóm và trọng số'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: route-predicates-011
     title: Version và ApiVersionStrategy cho định tuyến theo phiên bản API khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
     summary: ''
   - slug: route-predicates-012
     title: ReadBody qua Java DSL và giới hạn lưu request body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: route-predicates-013
     title: Phối hợp predicate và kiểm tra điều kiện thực tế của một yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: route-predicates-014
     title: Tác động của base path, mã hóa URL và chuẩn hóa đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
   childs:
   - slug: filter-chain-001
     title: Phân biệt GatewayFilter, GlobalFilter và GatewayFilterFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: filter-chain-002
     title: Cách kết hợp global filter với bộ lọc riêng của tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: filter-chain-003
     title: Ordered và thứ tự thực thi trước/sau theo chiều đảo ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: filter-chain-004
     title: OrderedGatewayFilter và thứ tự bộ lọc trong Java DSL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: filter-chain-005
     title: Tiếp tục chuỗi bằng chain.filter(exchange)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: filter-chain-006
     title: Kết thúc sớm với phản hồi trực tiếp tại gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: filter-chain-007
     title: Thao tác trước khi response được commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: filter-chain-008
     title: Tương tác thứ tự giữa rewrite, load balancing, retry và bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: filter-chain-009
     title: Đối chiếu chuỗi bộ lọc đang chạy với cấu hình khai báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
   childs:
   - slug: path-rewriting-redirects-001
     title: 'StripPrefix: bỏ các đoạn đầu đường dẫn'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-002
     title: 'PrefixPath: thêm tiền tố cho yêu cầu phía sau'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-003
     title: 'SetPath: đặt đường dẫn bằng URI template'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-004
     title: 'RewritePath: thay thế đường dẫn bằng biểu thức chính quy'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-005
     title: Escape ký tự thay thế trong YAML và Java DSL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-006
     title: 'RedirectTo: chuyển hướng client và lựa chọn mã HTTP'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-007
     title: 'RewriteLocationResponseHeader: sửa Location từ dịch vụ phía sau'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-008
     title: 'RewriteResponseHeader: sửa giá trị header bằng biểu thức chính quy'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-009
     title: Phân biệt rewrite nội bộ, forward nội bộ và redirect ra client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: path-rewriting-redirects-010
     title: Giữ query string, dấu gạch chéo và ký tự mã hóa khi đổi đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
   childs:
   - slug: request-headers-001
     title: 'AddRequestHeader và SetRequestHeader: thêm hoặc thay thế giá trị'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: request-headers-002
     title: AddRequestHeadersIfNotPresent và điều kiện bổ sung header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: request-headers-003
     title: RemoveRequestHeader và loại bỏ dữ liệu không được chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: request-headers-004
     title: MapRequestHeader và ánh xạ giá trị giữa các header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -832,7 +832,7 @@ menu:
     summary: ''
   - slug: request-headers-005
     title: AddRequestParameter và RemoveRequestParameter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -841,7 +841,7 @@ menu:
     summary: ''
   - slug: request-headers-006
     title: PreserveHostHeader và SetRequestHostHeader
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
     summary: ''
   - slug: request-headers-007
     title: RequestHeaderToRequestUri và kiểm soát đích chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -859,7 +859,7 @@ menu:
     summary: ''
   - slug: request-headers-008
     title: Forwarded, X-Forwarded-* và thông tin proxy được tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
     summary: ''
   - slug: request-headers-009
     title: RemoveHopByHop và các header dành riêng từng chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
     summary: ''
   - slug: request-headers-010
     title: Giới hạn kích thước header bằng RequestHeaderSize khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: request-headers-011
     title: Giữ định danh yêu cầu và ngăn client giả mạo header nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
   childs:
   - slug: response-headers-status-001
     title: AddResponseHeader và SetResponseHeader
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: response-headers-status-002
     title: RemoveResponseHeader và loại bỏ thông tin triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -916,7 +916,7 @@ menu:
     summary: ''
   - slug: response-headers-status-003
     title: DedupeResponseHeader khi gateway và dịch vụ cùng ghi header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -925,7 +925,7 @@ menu:
     summary: ''
   - slug: response-headers-status-004
     title: SecureHeaders và tùy chỉnh chính sách header bảo mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -934,7 +934,7 @@ menu:
     summary: ''
   - slug: response-headers-status-005
     title: SetStatus và hợp đồng mã HTTP trả về client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
     summary: ''
   - slug: response-headers-status-006
     title: Đổi URI đích qua Java DSL và kiểm soát exchange attributes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
     summary: ''
   - slug: response-headers-status-007
     title: Xử lý Content-Length, Transfer-Encoding và nội dung được biến đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: response-headers-status-008
     title: Cookie, thuộc tính Set-Cookie và tác động của proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: response-headers-status-009
     title: Đồng bộ header, body và mã trạng thái khi tạo phản hồi tại gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
   childs:
   - slug: http-body-handling-001
     title: Vì sao request body thường chỉ được đọc một lần trong WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: http-body-handling-002
     title: CacheRequestBody và tái sử dụng nội dung đã đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1000,7 +1000,7 @@ menu:
     summary: ''
   - slug: http-body-handling-003
     title: ModifyRequestBody qua Java DSL và chuyển đổi dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1009,7 +1009,7 @@ menu:
     summary: ''
   - slug: http-body-handling-004
     title: ModifyResponseBody qua Java DSL và chuyển đổi dữ liệu trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1018,7 +1018,7 @@ menu:
     summary: ''
   - slug: http-body-handling-005
     title: RewriteRequestParameter và quy tắc thay query parameter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1027,7 +1027,7 @@ menu:
     summary: ''
   - slug: http-body-handling-006
     title: RemoveJsonAttributesResponseBody và loại bỏ trường JSON
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
     summary: ''
   - slug: http-body-handling-007
     title: RequestSize và giới hạn kích thước tải lên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
     summary: ''
   - slug: http-body-handling-008
     title: JSON, form, multipart và lựa chọn bộ chuyển đổi nội dung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: http-body-handling-009
     title: Giới hạn bộ đệm codec và DataBufferLimitException
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: http-body-handling-010
     title: DataBuffer, giữ/thả bộ đệm và phòng tránh rò rỉ bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: http-body-handling-011
     title: Bộ đệm toàn bộ nội dung so với truyền dữ liệu theo luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: http-body-handling-012
     title: Che dữ liệu nhạy cảm khi ghi log request hoặc response body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1093,7 +1093,7 @@ menu:
   childs:
   - slug: service-discovery-load-balancing-001
     title: Tuyến cố định so với tuyến dùng định danh dịch vụ lb://
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1102,7 +1102,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-002
     title: Tích hợp Spring Cloud LoadBalancer với Gateway Server WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1111,7 +1111,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-003
     title: ReactiveLoadBalancerClientFilter và phân giải ServiceInstance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-004
     title: Kết nối DiscoveryClient với Eureka, Consul hoặc nguồn dịch vụ phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-005
     title: DiscoveryClient Route Definition Locator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-006
     title: Predicate và filter mặc định của các tuyến tự sinh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-007
     title: Tùy chỉnh điều kiện đưa dịch vụ vào danh sách tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-008
     title: Định danh dịch vụ, chữ hoa/thường và quy tắc đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-009
     title: Lựa chọn instance, trạng thái isSecure và giao thức phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-010
     title: Xử lý không có instance khả dụng và phản hồi 503 hoặc 404
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-011
     title: Tương tác giữa khám phá dịch vụ, cache và thay đổi danh sách instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: service-discovery-load-balancing-012
     title: Kiểm soát dịch vụ nội bộ được phép công bố qua discovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1204,7 +1204,7 @@ menu:
   childs:
   - slug: connections-tls-001
     title: Phân biệt kết nối client–gateway với kết nối gateway–dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
     summary: ''
   - slug: connections-tls-002
     title: Cấu hình TLS đầu vào và chứng chỉ của gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
     summary: ''
   - slug: connections-tls-003
     title: Trust store, chứng chỉ phía sau và xác minh tên máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: connections-tls-004
     title: Xác thực hai chiều mTLS khi triển khai và phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: connections-tls-005
     title: Thời gian chờ kết nối, phản hồi và bắt tay TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: connections-tls-006
     title: Ghi đè thời gian chờ theo route metadata và đơn vị cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: connections-tls-007
     title: Connection pool, giới hạn kết nối và hàng đợi chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: connections-tls-008
     title: Keep-alive, thời gian nhàn rỗi và vòng đời kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: connections-tls-009
     title: Phân giải DNS và thay đổi địa chỉ dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: connections-tls-010
     title: HttpClientCustomizer và tùy biến Reactor Netty HttpClient
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: connections-tls-011
     title: Cấu hình proxy đầu ra khi môi trường triển khai yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
   childs:
   - slug: cors-001
     title: Same-origin, cross-origin và vai trò CORS tại gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: cors-002
     title: Yêu cầu đơn giản so với preflight OPTIONS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: cors-003
     title: Cấu hình CORS toàn cục cho Gateway Server WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: cors-004
     title: Cấu hình CORS bằng metadata của từng tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: cors-005
     title: Preflight không khớp route predicate và simple URL handler mapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: cors-006
     title: Allowed origins, methods, headers và exposed headers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: cors-007
     title: Credentials, wildcard origin và thời gian cache preflight
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: cors-008
     title: Phối hợp CORS giữa gateway, Spring Security và dịch vụ phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: cors-009
     title: Chẩn đoán header CORS bị trùng hoặc preflight bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: authentication-authorization-001
     title: Ranh giới xác thực tại gateway và kiểm tra quyền tại dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-002
     title: Tích hợp Spring Security với SecurityWebFilterChain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-003
     title: OAuth 2.0 Resource Server và xác minh JWT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-004
     title: Kiểm tra issuer, audience, thời hạn và chữ ký token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-005
     title: Phân quyền theo đường dẫn, HTTP method, role và scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-006
     title: Tách tuyến công khai, tuyến cần đăng nhập và tuyến quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-007
     title: Chuẩn hóa phản hồi 401, 403 và lỗi xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-008
     title: Token dạng opaque và tích hợp introspection khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-009
     title: CSRF theo mô hình client dùng cookie hoặc bearer token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-010
     title: Chuyển tiếp danh tính xuống dịch vụ trong ranh giới tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1480,7 +1480,7 @@ menu:
     summary: ''
   - slug: authentication-authorization-011
     title: Quản lý khóa xác minh, cache JWK và thay đổi khóa của nhà cung cấp danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
   childs:
   - slug: sessions-tokens-001
     title: Gateway làm OAuth 2.0 Client và đăng nhập bằng OpenID Connect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-002
     title: TokenRelay và chuyển access token đến dịch vụ phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-003
     title: OAuth2AuthorizedClient và lựa chọn client registration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-004
     title: Phân biệt relay token hiện có với cấp token hoặc trao đổi token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-005
     title: Lưu trạng thái authorized client và giới hạn lưu trữ trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-006
     title: SaveSession và thời điểm lưu phiên trước khi chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-007
     title: Spring Session và chia sẻ phiên khi chạy nhiều bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-008
     title: Cookie phiên, SameSite, Secure và đường dẫn phía sau proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1564,7 +1564,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-009
     title: Đăng xuất, token hết hạn và vòng đời phiên của người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1573,7 +1573,7 @@ menu:
     summary: ''
   - slug: sessions-tokens-010
     title: Ngăn ghi log hoặc chuyển token đến đích không được tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
   childs:
   - slug: rate-limiting-001
     title: Giới hạn tần suất, giới hạn đồng thời và hạn mức sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: rate-limiting-002
     title: RequestRateLimiter và phản hồi HTTP 429
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: rate-limiting-003
     title: 'Token bucket: tốc độ nạp, dung lượng và chi phí mỗi yêu cầu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: rate-limiting-004
     title: RedisRateLimiter và dependency Redis reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: rate-limiting-005
     title: replenishRate, burstCapacity và requestedTokens
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: rate-limiting-006
     title: KeyResolver theo người dùng, khách hàng, API key hoặc địa chỉ IP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: rate-limiting-007
     title: Khóa rỗng, deny-empty-key và nguy cơ chọn khóa không tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: rate-limiting-008
     title: Hạn mức theo tuyến và khách hàng trong hệ thống nhiều bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: rate-limiting-009
     title: Header thông báo giới hạn và phản hồi khi bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: rate-limiting-010
     title: Bucket4j và lựa chọn kho trạng thái theo biến thể, phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1675,7 +1675,7 @@ menu:
     summary: ''
   - slug: rate-limiting-011
     title: RateLimiter tùy biến và chính sách khi kho giới hạn lưu lượng lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
     summary: ''
   - slug: rate-limiting-012
     title: Kiểm thử tải đột biến, phân bố khóa và tính nhất quán hạn mức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
   childs:
   - slug: circuit-breakers-fallbacks-001
     title: Vai trò circuit breaker trong chuỗi gọi qua gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-002
     title: Tích hợp CircuitBreaker filter với Spring Cloud CircuitBreaker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-003
     title: Chọn implementation Resilience4j phù hợp với web stack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-004
     title: Các trạng thái đóng, mở, thử lại và cách đo tỷ lệ lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-005
     title: Cấu hình tên circuit breaker, cửa sổ đo và ngưỡng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-006
     title: Kích hoạt theo exception hoặc mã HTTP được chỉ định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-007
     title: fallbackUri và endpoint dự phòng nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-008
     title: FallbackHeaders và thông tin lỗi được phép chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1768,7 +1768,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-009
     title: Phối hợp circuit breaker với timeout và cơ chế thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
     summary: ''
   - slug: circuit-breakers-fallbacks-010
     title: Tránh fallback gây đệ quy hoặc che mất lỗi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
   childs:
   - slug: request-retries-001
     title: Retry filter và các loại lỗi có thể thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: request-retries-002
     title: Giới hạn số lần thử theo method, status và exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: request-retries-003
     title: Khoảng chờ tăng dần và giới hạn tổng thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: request-retries-004
     title: Tính lặp an toàn của GET so với thao tác ghi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: request-retries-005
     title: Idempotency key cho nghiệp vụ có nguy cơ thực hiện lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: request-retries-006
     title: Lưu request body khi thử lại và chi phí bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: request-retries-007
     title: Thử lại với forward nội bộ và điều kiện response chưa commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
     summary: ''
   - slug: request-retries-008
     title: Tương tác với load balancer và cơ chế thử lại của dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: request-retries-009
     title: Tránh khuếch đại tải khi nhiều tầng cùng thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
   childs:
   - slug: response-caching-001
     title: Phân biệt cache tuyến, cache phản hồi và cache dữ liệu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: response-caching-002
     title: LocalResponseCache và các dependency cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: response-caching-003
     title: Điều kiện cache theo HTTP method, status và Cache-Control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: response-caching-004
     title: Cấu hình dung lượng và thời gian sống theo tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: response-caching-005
     title: Tương tác với max-age và các yêu cầu có điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: response-caching-006
     title: Giới hạn cache cục bộ khi gateway có nhiều bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: response-caching-007
     title: Ngăn cache nhầm dữ liệu theo người dùng hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: response-caching-008
     title: Đo tỷ lệ cache hit và kiểm chứng tính đúng đắn của phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1948,7 +1948,7 @@ menu:
   childs:
   - slug: custom-filters-001
     title: Tạo GatewayFilterFactory bằng AbstractGatewayFilterFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
     summary: ''
   - slug: custom-filters-002
     title: Lớp Config, ánh xạ args và kiểm tra cấu hình đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: custom-filters-003
     title: Quy tắc đặt tên factory và shortcutFieldOrder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: custom-filters-004
     title: Viết GlobalFilter và lựa chọn thứ tự có chủ đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: custom-filters-005
     title: Viết AbstractRoutePredicateFactory tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: custom-filters-006
     title: Thay đổi request và response bằng các decorator phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: custom-filters-007
     title: Xử lý trước, sau, lỗi và hủy trong một chuỗi Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: custom-filters-008
     title: Chạy công việc chặn luồng ngoài event loop khi thực sự cần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: custom-filters-009
     title: Tránh gọi subscribe() thủ công hoặc block() trong chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: custom-filters-010
     title: Truyền dữ liệu qua exchange attributes và Reactor Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: custom-filters-011
     title: Kiểm thử hợp đồng của bộ lọc cùng các bộ lọc có sẵn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: custom-filters-012
     title: Đóng gói bộ lọc dùng chung và quản lý tương thích phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
   childs:
   - slug: dynamic-routes-001
     title: Khi nào dùng tuyến tĩnh và khi nào cần nguồn tuyến động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-002
     title: RouteDefinitionRepository và vòng đời định nghĩa tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-003
     title: Lưu tuyến trong bộ nhớ, Redis hoặc kho tùy biến theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-004
     title: Nạp tuyến bằng RouteDefinitionLocator tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-005
     title: Tích hợp nguồn cấu hình tập trung và giới hạn refresh tự động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-006
     title: RefreshRoutesEvent và làm mới bộ nhớ đệm tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-007
     title: Phân biệt thay đổi kho định nghĩa với tuyến đang có hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-008
     title: Chia sẻ tuyến và đồng bộ refresh giữa nhiều bản sao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-009
     title: Kiểm tra định nghĩa tuyến trước khi phát hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-010
     title: Phiên bản cấu hình, kiểm toán thay đổi và khôi phục tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: dynamic-routes-011
     title: Bảo vệ URI đích, biểu thức và tham số của cấu hình động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
   childs:
   - slug: actuator-management-001
     title: Bật Gateway Actuator với quyền truy cập phù hợp phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: actuator-management-002
     title: Phân biệt exposure, quyền đọc và quyền thay đổi tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: actuator-management-003
     title: Xem danh sách tuyến, định nghĩa tuyến và chi tiết một tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: actuator-management-004
     title: Xem predicate, route filter, global filter và thứ tự bộ lọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: actuator-management-005
     title: Đối chiếu định dạng kết quả đọc với định dạng yêu cầu tạo tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: actuator-management-006
     title: Tạo, xóa và refresh tuyến động trong môi trường được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: actuator-management-007
     title: Giới hạn thao tác đối với tuyến do YAML hoặc Java bean quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: actuator-management-008
     title: Refresh có chọn lọc theo metadata khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: actuator-management-009
     title: Cô lập endpoint quản trị khỏi lưu lượng công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: actuator-management-010
     title: Phân quyền, kiểm toán và phục hồi khi thay đổi tuyến thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
   childs:
   - slug: websocket-streaming-001
     title: 'Định tuyến WebSocket bằng ws: và wss:'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-002
     title: WebsocketRoutingFilter và quá trình nâng cấp kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-003
     title: 'Kết hợp lb:ws: với khám phá dịch vụ khi được hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-004
     title: Định tuyến HTTP riêng cho cơ chế fallback như SockJS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-005
     title: Xác thực, Origin và thông tin phiên khi bắt tay WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-006
     title: Server-Sent Events và truyền phản hồi liên tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-007
     title: Streaming upload/download và tác động của bộ lọc body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-008
     title: Timeout, heartbeat và ngắt kết nối phía client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-009
     title: HTTP/2 và điều kiện hỗ trợ xuyên suốt các chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: websocket-streaming-010
     title: Giới hạn proxy gRPC và bộ lọc JsonToGrpc theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
   childs:
   - slug: server-web-mvc-001
     title: Kiến trúc Servlet và WebMvc.fn của Gateway Server Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-002
     title: Khởi tạo đúng starter và lựa chọn Servlet runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-003
     title: GatewayRouterFunctions, RouterFunction và HandlerFunctions.http()
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-004
     title: Khai báo tuyến Web MVC bằng cấu hình hoặc Java DSL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-005
     title: GatewayRequestPredicates và các điều kiện được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-006
     title: BeforeFilterFunctions, AfterFilterFunctions và HandlerFilterFunction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-007
     title: Đổi đường dẫn, header và nội dung bằng bộ lọc Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-008
     title: LoadBalancer filter và thứ tự phối hợp với bộ lọc rewrite
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-009
     title: Retry, CircuitBreaker và TokenRelay trên Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-010
     title: RateLimiter dựa trên Bucket4j và key resolver của Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-011
     title: HttpClient, timeout và bộ đệm trong kiến trúc Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-012
     title: Tích hợp SecurityFilterChain và quản lý phiên Servlet
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: server-web-mvc-013
     title: Giới hạn tính năng so với WebFlux và kiểm thử khi chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
   childs:
   - slug: proxy-exchange-001
     title: Khi nào chọn ProxyExchange trong controller thay cho Gateway Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-002
     title: Dependency Proxy Exchange cho Spring Web MVC hoặc WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-003
     title: Đối tượng ProxyExchange làm tham số handler method
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-004
     title: Chuyển tiếp GET, POST và các HTTP method khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-005
     title: Tách phần đường dẫn còn lại để tạo URI đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-006
     title: Thêm header và ánh xạ ResponseEntity trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-007
     title: Sensitive headers, skipped headers và X-Forwarded-*
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-008
     title: forward() đến handler nội bộ trong biến thể Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-009
     title: Giới hạn áp dụng cấu hình route và filter của Gateway Server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: proxy-exchange-010
     title: Kiểm tra URI đích và tránh tạo open proxy trong controller
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
   childs:
   - slug: observability-001
     title: Gateway metrics, Actuator và Micrometer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Số lượng yêu cầu, độ trễ, kết quả và mã HTTP theo route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Tích hợp Prometheus và xây dựng bảng theo dõi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Kiểm soát nhãn route, path và cardinality của số liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Tracing phân tán và truyền trace context xuống dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Correlation ID và log có cấu trúc xuyên chuỗi gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Reactor Netty access log và phân biệt với application log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Wiretap HTTP client/server và bảo vệ dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: observability-009
     title: Theo dõi connection pool, event loop, bộ nhớ và bộ đệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: observability-010
     title: Đo tác động của rate limiting, retry, fallback và cache
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: observability-011
     title: Thiết kế cảnh báo theo tỷ lệ lỗi, độ trễ và mức bão hòa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
   childs:
   - slug: testing-001
     title: Ma trận kiểm thử theo biến thể, tuyến và nhóm bộ lọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử predicate với các yêu cầu khớp và không khớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử đơn vị bộ lọc bằng MockServerWebExchange
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: StepVerifier cho chuỗi Reactor và các nhánh lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: WebTestClient cho kiểm thử toàn trình qua Gateway Server WebFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: MockMvc hoặc client HTTP cho Gateway Server Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Mô phỏng dịch vụ phía sau bằng WireMock hoặc MockWebServer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm chứng đường dẫn, header, body và status sau chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử CORS, preflight, JWT, session và TokenRelay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử Redis rate limiting và nhiều bản sao khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Mô phỏng timeout, lỗi kết nối, retry và circuit breaker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử WebSocket, SSE, multipart và giới hạn nội dung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: testing-013
     title: Kiểm thử refresh tuyến, thứ tự tuyến và khôi phục cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: testing-014
     title: Kiểm thử tải và hồi quy bảo mật cho gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
   childs:
   - slug: performance-001
     title: Đo thông lượng và các phân vị độ trễ qua từng chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Đánh giá chi phí gateway so với gọi trực tiếp dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Tối ưu connection pool và giới hạn kết nối đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Phát hiện lời gọi chặn event loop và điểm nghẽn CPU
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Giới hạn codec, direct memory và số body đang được lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Tác động của logging, tracing và biến đổi body
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Giảm chi phí predicate và biểu thức chính quy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2854,7 +2854,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Đánh giá độ trễ do TLS, DNS và thiết lập kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Thiết kế timeout budget xuyên gateway và dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Kiểm thử bão hòa, tải đột biến và hành vi khi quá tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: performance-011
     title: Cân bằng giữa backpressure, rate limiting và năng lực dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2893,7 +2893,7 @@ menu:
   childs:
   - slug: deployment-001
     title: Đóng gói ứng dụng và phân biệt yêu cầu runtime của từng biến thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2902,7 +2902,7 @@ menu:
     summary: ''
   - slug: deployment-002
     title: Spring AOT, native image và khai báo dịch vụ load-balanced theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
     summary: ''
   - slug: deployment-003
     title: Quản lý cấu hình, chứng chỉ và bí mật theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: deployment-004
     title: Triển khai container và cấu hình giới hạn tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: deployment-005
     title: Đặt gateway sau load balancer, ingress hoặc reverse proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: deployment-006
     title: Trusted proxies và đường dẫn công khai sau nhiều lớp proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: deployment-007
     title: Readiness, liveness và phụ thuộc cần kiểm tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
     summary: ''
   - slug: deployment-008
     title: Chạy nhiều bản sao và chia sẻ session, hạn mức hoặc tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: deployment-009
     title: Tự động mở rộng theo tải và tín hiệu bão hòa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: deployment-010
     title: Dừng an toàn, rút lưu lượng và xử lý kết nối đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: deployment-011
     title: Nâng cấp cuốn chiếu và phục hồi cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: deployment-012
     title: Phân biệt Kubernetes Ingress, Gateway API và Spring Cloud Gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3004,7 +3004,7 @@ menu:
   childs:
   - slug: security-hardening-001
     title: Chống SSRF và giới hạn scheme, host, port của URI đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3013,7 +3013,7 @@ menu:
     summary: ''
   - slug: security-hardening-002
     title: Ngăn open proxy từ header, query hoặc cấu hình tuyến động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3022,7 +3022,7 @@ menu:
     summary: ''
   - slug: security-hardening-003
     title: Xử lý đường dẫn mã hóa, path traversal và chuẩn hóa không nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3031,7 +3031,7 @@ menu:
     summary: ''
   - slug: security-hardening-004
     title: Loại bỏ header danh tính giả mạo và chỉ tin proxy đã xác minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
     summary: ''
   - slug: security-hardening-005
     title: Kiểm soát Host, Forwarded và X-Forwarded-*
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: security-hardening-006
     title: Rà soát request smuggling và bất đồng cách hiểu HTTP giữa các chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: security-hardening-007
     title: Giới hạn header, body, multipart và thời gian đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: security-hardening-008
     title: Không công khai Actuator có quyền ghi hoặc dữ liệu cấu hình nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: security-hardening-009
     title: Bảo vệ token, cookie, API key và thông tin xác thực phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: security-hardening-010
     title: Cập nhật bản vá Gateway, Spring Framework và Reactor Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: security-hardening-011
     title: Kiểm soát lỗi trả về, header bảo mật và thông tin triển khai bị lộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3103,7 +3103,7 @@ menu:
     summary: ''
   - slug: security-hardening-012
     title: Kiểm tra quyền tại dịch vụ khi gateway bị bỏ qua
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3115,7 +3115,7 @@ menu:
   childs:
   - slug: routing-patterns-001
     title: Định tuyến theo phiên bản API bằng path hoặc header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3124,7 +3124,7 @@ menu:
     summary: ''
   - slug: routing-patterns-002
     title: Canary theo Weight và giới hạn của phân phối xác suất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3133,7 +3133,7 @@ menu:
     summary: ''
   - slug: routing-patterns-003
     title: Định tuyến nhất quán theo nhóm người dùng hoặc khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3142,7 +3142,7 @@ menu:
     summary: ''
   - slug: routing-patterns-004
     title: Blue-green và chuyển lưu lượng có kế hoạch khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
     summary: ''
   - slug: routing-patterns-005
     title: Backend for Frontend theo từng loại ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: routing-patterns-006
     title: Strangler pattern khi chuyển dần hệ thống cũ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3169,7 +3169,7 @@ menu:
     summary: ''
   - slug: routing-patterns-007
     title: Tách tuyến theo miền nghiệp vụ và phân quyền quản lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3178,7 +3178,7 @@ menu:
     summary: ''
   - slug: routing-patterns-008
     title: Giới hạn tổng hợp dữ liệu tại gateway và xử lý lỗi một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3187,7 +3187,7 @@ menu:
     summary: ''
   - slug: routing-patterns-009
     title: Quản lý CORS, token và rewrite trong cổng vào nhiều khách hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3199,7 +3199,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Ứng dụng không khởi động do starter, BOM hoặc web stack không tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3208,7 +3208,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: '404 tại gateway: không khớp tuyến hay lỗi từ dịch vụ phía sau'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3217,7 +3217,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: 503 do không tìm thấy ServiceInstance hoặc không kết nối được đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3226,7 +3226,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: 502, 504 và lỗi timeout theo từng chặng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3235,7 +3235,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Path bị mất đoạn, lặp tiền tố hoặc mã hóa sai sau rewrite
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3244,7 +3244,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Header Host, Forwarded hoặc Location không đúng sau proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3253,7 +3253,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Preflight thất bại hoặc header CORS xuất hiện nhiều lần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3262,7 +3262,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: 401/403 và TokenRelay không gửi access token mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3271,7 +3271,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Request body rỗng, bị đọc hai lần hoặc vượt giới hạn bộ đệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3280,7 +3280,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Retry gây thao tác trùng hoặc circuit breaker mở ngoài dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3289,7 +3289,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Hạn mức không đồng nhất giữa nhiều bản sao hoặc Redis không khả dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3298,7 +3298,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: WebSocket ngắt sớm, SSE bị dồn bộ đệm hoặc response đã commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
     summary: ''
   - slug: troubleshooting-013
     title: Tuyến mới chưa có hiệu lực sau thay đổi hoặc refresh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: troubleshooting-014
     title: Thu thập bằng chứng từ Actuator, access log, metrics và tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3328,7 +3328,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Đối chiếu ma trận Spring Boot, Spring Cloud và Gateway trước nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3337,7 +3337,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Thay đổi tên artifact, starter và namespace cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3346,7 +3346,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Đối chiếu thay đổi mặc định của predicate và filter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3355,7 +3355,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Di chuyển cấu hình bảo mật, trusted proxies và Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3364,7 +3364,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Kiểm tra tương thích bộ lọc, predicate và HttpClient tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3373,7 +3373,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Đánh giá chuyển từ Zuul hoặc proxy khác sang Gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3382,7 +3382,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Chuyển giữa Server WebFlux và Server Web MVC theo ma trận tính năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3391,7 +3391,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Kiểm thử hồi quy tuyến, giao thức, bảo mật và hiệu năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3400,7 +3400,7 @@ menu:
     summary: ''
   - slug: upgrades-009
     title: Triển khai thử nghiệm, theo dõi sai lệch và khôi phục phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3412,7 +3412,7 @@ menu:
   childs:
   - slug: hands-on-practice-001
     title: Dựng gateway với nhiều dịch vụ và kiểm chứng chọn tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3421,7 +3421,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-002
     title: Kết hợp Path, Host, Method và Header trong một tình huống định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3430,7 +3430,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-003
     title: Chuẩn hóa đường dẫn, header và mã lỗi cho API phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3439,7 +3439,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-004
     title: Tích hợp discovery và cân bằng tải nhiều instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3448,7 +3448,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-005
     title: Bảo vệ API bằng JWT và kiểm chứng quyền theo scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3457,7 +3457,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-006
     title: Thiết lập đăng nhập OIDC, phiên dùng chung và TokenRelay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3466,7 +3466,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-007
     title: Giới hạn lưu lượng theo khách hàng bằng kho trạng thái dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3475,7 +3475,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-008
     title: Mô phỏng lỗi để quan sát timeout, retry và circuit breaker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3484,7 +3484,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-009
     title: Viết bộ lọc tùy biến có kiểm thử và không chặn event loop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3493,7 +3493,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-010
     title: Phát hành tuyến động có kiểm tra, kiểm toán và khôi phục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3502,7 +3502,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-011
     title: Proxy WebSocket hoặc SSE và kiểm chứng truyền dữ liệu liên tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-012
     title: So sánh cùng tình huống trên Server WebFlux và Server Web MVC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-013
     title: Đóng gói, đo tải, theo dõi và diễn tập phục hồi gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

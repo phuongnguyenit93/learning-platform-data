@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: recovery-foundations-001
     title: Account recovery purpose and boundaries
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-002
     title: Recovery versus authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-003
     title: Recovery versus authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-004
     title: Recovery as a security control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-005
     title: Recovery as a high-risk transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-006
     title: Recovery assumptions and guarantees
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: recovery-foundations-007
     title: Recovery terminology for learners
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: recovery-terminology-001
     title: Account owner definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-002
     title: Claimant and verifier roles
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-003
     title: Recovery factor meaning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-004
     title: Proofing evidence meaning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-005
     title: Recovery channel meaning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-006
     title: Recovery ceremony meaning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: recovery-terminology-007
     title: Recovery completion meaning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -136,7 +136,7 @@ menu:
   childs:
   - slug: account-state-model-001
     title: Active account state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
     summary: ''
   - slug: account-state-model-002
     title: Locked account state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: account-state-model-003
     title: Suspended account state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: account-state-model-004
     title: Pending verification state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: account-state-model-005
     title: Compromised account state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: account-state-model-006
     title: Deleted account state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: account-state-model-007
     title: Recovery hold state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -202,7 +202,7 @@ menu:
   childs:
   - slug: recovery-threat-model-001
     title: Stolen credential attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -211,7 +211,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-002
     title: Compromised mailbox attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-003
     title: SIM swap attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-004
     title: Malware assisted attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-005
     title: Insider abuse attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-006
     title: Automated guessing attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: recovery-threat-model-007
     title: Social engineering attacker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -268,7 +268,7 @@ menu:
   childs:
   - slug: recovery-policy-001
     title: Policy ownership and review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -277,7 +277,7 @@ menu:
     summary: ''
   - slug: recovery-policy-002
     title: Minimum recovery assurance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -286,7 +286,7 @@ menu:
     summary: ''
   - slug: recovery-policy-003
     title: Factor strength ordering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -295,7 +295,7 @@ menu:
     summary: ''
   - slug: recovery-policy-004
     title: High value account rules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
     summary: ''
   - slug: recovery-policy-005
     title: Privileged account restrictions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: recovery-policy-006
     title: Recovery policy exceptions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: recovery-policy-007
     title: Policy version rollout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -334,7 +334,7 @@ menu:
   childs:
   - slug: recovery-journey-001
     title: Recovery journey entry points
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -343,7 +343,7 @@ menu:
     summary: ''
   - slug: recovery-journey-002
     title: Recovery journey decision tree
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -352,7 +352,7 @@ menu:
     summary: ''
   - slug: recovery-journey-003
     title: Recovery journey state transitions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -361,7 +361,7 @@ menu:
     summary: ''
   - slug: recovery-journey-004
     title: Recovery journey interruption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -370,7 +370,7 @@ menu:
     summary: ''
   - slug: recovery-journey-005
     title: Recovery journey resumption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -379,7 +379,7 @@ menu:
     summary: ''
   - slug: recovery-journey-006
     title: Recovery journey completion screen
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
     summary: ''
   - slug: recovery-journey-007
     title: Recovery journey failure screen
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -400,7 +400,7 @@ menu:
   childs:
   - slug: eligibility-rules-001
     title: Eligible account conditions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -409,7 +409,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-002
     title: Ineligible account conditions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -418,7 +418,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-003
     title: Verified contact requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -427,7 +427,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-004
     title: Recent authentication requirement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -436,7 +436,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-005
     title: Account age restrictions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -445,7 +445,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-006
     title: Pending change restrictions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -454,7 +454,7 @@ menu:
     summary: ''
   - slug: eligibility-rules-007
     title: Recovery cooldown eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -466,7 +466,7 @@ menu:
   childs:
   - slug: recovery-discovery-001
     title: Finding a recovery route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -475,7 +475,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-002
     title: Discovering registered channels
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -484,7 +484,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-003
     title: Discovering trusted devices
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -493,7 +493,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-004
     title: Discovering recovery contacts
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -502,7 +502,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-005
     title: Avoiding channel disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -511,7 +511,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-006
     title: Generic discovery responses
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -520,7 +520,7 @@ menu:
     summary: ''
   - slug: recovery-discovery-007
     title: Discovery result consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -532,7 +532,7 @@ menu:
   childs:
   - slug: identifier-handling-001
     title: Username lookup during recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -541,7 +541,7 @@ menu:
     summary: ''
   - slug: identifier-handling-002
     title: Email identifier normalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -550,7 +550,7 @@ menu:
     summary: ''
   - slug: identifier-handling-003
     title: Phone identifier normalization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -559,7 +559,7 @@ menu:
     summary: ''
   - slug: identifier-handling-004
     title: Case folding rules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -568,7 +568,7 @@ menu:
     summary: ''
   - slug: identifier-handling-005
     title: Unicode identifier handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -577,7 +577,7 @@ menu:
     summary: ''
   - slug: identifier-handling-006
     title: Identifier alias policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -586,7 +586,7 @@ menu:
     summary: ''
   - slug: identifier-handling-007
     title: Identifier privacy protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
   childs:
   - slug: initiation-requests-001
     title: Recovery request payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: initiation-requests-002
     title: Recovery request correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: initiation-requests-003
     title: Recovery request idempotency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: initiation-requests-004
     title: Recovery request validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -634,7 +634,7 @@ menu:
     summary: ''
   - slug: initiation-requests-005
     title: Recovery request rejection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -643,7 +643,7 @@ menu:
     summary: ''
   - slug: initiation-requests-006
     title: Recovery request cancellation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -652,7 +652,7 @@ menu:
     summary: ''
   - slug: initiation-requests-007
     title: Recovery request replay handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
   childs:
   - slug: email-link-recovery-001
     title: Email link recovery flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-002
     title: Recovery link composition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-003
     title: Recovery link destination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-004
     title: Recovery link expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-005
     title: Recovery link single use
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-006
     title: Recovery link confirmation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: email-link-recovery-007
     title: Recovery link revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
   childs:
   - slug: email-delivery-001
     title: Recovery email template
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: email-delivery-002
     title: Recovery email sender identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: email-delivery-003
     title: Recovery email delivery timing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: email-delivery-004
     title: Recovery email retry policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: email-delivery-005
     title: Recovery email bounce handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: email-delivery-006
     title: Recovery email provider failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: email-delivery-007
     title: Recovery email delivery telemetry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
   childs:
   - slug: otp-recovery-001
     title: One time password generation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: otp-recovery-002
     title: One time password presentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: otp-recovery-003
     title: One time password expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: otp-recovery-004
     title: One time password attempt budget
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -832,7 +832,7 @@ menu:
     summary: ''
   - slug: otp-recovery-005
     title: One time password resend rules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -841,7 +841,7 @@ menu:
     summary: ''
   - slug: otp-recovery-006
     title: One time password verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
     summary: ''
   - slug: otp-recovery-007
     title: One time password invalidation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
   childs:
   - slug: sms-voice-recovery-001
     title: SMS recovery channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-002
     title: Voice call recovery channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-003
     title: Telephony delivery risks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-004
     title: Short code and sender policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-005
     title: Phone number ownership signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-006
     title: Carrier change detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -916,7 +916,7 @@ menu:
     summary: ''
   - slug: sms-voice-recovery-007
     title: Telephony fallback restrictions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
   childs:
   - slug: authenticator-recovery-001
     title: Authenticator application loss
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-002
     title: Authenticator seed replacement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-003
     title: Time based code recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-004
     title: Counter based code recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-005
     title: Authenticator enrollment proof
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-006
     title: Authenticator reset approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: authenticator-recovery-007
     title: Authenticator recovery audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
   childs:
   - slug: backup-code-recovery-001
     title: Backup code purpose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-002
     title: Backup code generation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-003
     title: Backup code display
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-004
     title: Backup code storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-005
     title: Backup code consumption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-006
     title: Backup code regeneration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: backup-code-recovery-007
     title: Backup code exhaustion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
   childs:
   - slug: security-questions-001
     title: Security question weaknesses
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
     summary: ''
   - slug: security-questions-002
     title: Guessable answer analysis
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: security-questions-003
     title: Answer normalization risks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: security-questions-004
     title: Question answer storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: security-questions-005
     title: Question answer attempt limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: security-questions-006
     title: Legacy question migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: security-questions-007
     title: Removing knowledge questions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
   childs:
   - slug: password-reset-001
     title: Password reset eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: password-reset-002
     title: Password reset form
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: password-reset-003
     title: Password reset policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
     summary: ''
   - slug: password-reset-004
     title: Password reset confirmation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1162,7 +1162,7 @@ menu:
     summary: ''
   - slug: password-reset-005
     title: Password history enforcement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
     summary: ''
   - slug: password-reset-006
     title: Password reset session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: password-reset-007
     title: Password reset completion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
   childs:
   - slug: username-recovery-001
     title: Username recovery request
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: username-recovery-002
     title: Username recovery disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: username-recovery-003
     title: Multiple username handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: username-recovery-004
     title: Username delivery message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: username-recovery-005
     title: Username recovery throttling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1237,7 +1237,7 @@ menu:
     summary: ''
   - slug: username-recovery-006
     title: Username recovery verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
     summary: ''
   - slug: username-recovery-007
     title: Username recovery audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
   childs:
   - slug: email-address-recovery-001
     title: Lost email address workflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-002
     title: New email address proof
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-003
     title: Old email address notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-004
     title: Email address change delay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-005
     title: Email address change reversal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-006
     title: Email address collision handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: email-address-recovery-007
     title: Email address recovery evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
   childs:
   - slug: phone-number-recovery-001
     title: Lost phone number workflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-002
     title: New phone number proof
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-003
     title: Old phone number notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-004
     title: Phone number change delay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-005
     title: Phone number change reversal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-006
     title: Phone number collision handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: phone-number-recovery-007
     title: Phone number recovery evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: device-loss-recovery-001
     title: Lost device response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-002
     title: Stolen device response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-003
     title: Trusted device removal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-004
     title: Device key replacement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-005
     title: Device inventory review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-006
     title: Remote sign out action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: device-loss-recovery-007
     title: Device recovery evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
   childs:
   - slug: passkey-recovery-001
     title: Passkey loss scenarios
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-002
     title: Platform passkey recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-003
     title: Roaming authenticator recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-004
     title: Passkey synchronization trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-005
     title: Credential replacement ceremony
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-006
     title: Passkey account binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: passkey-recovery-007
     title: Passkey recovery limitations
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1522,7 +1522,7 @@ menu:
   childs:
   - slug: mfa-recovery-001
     title: MFA factor inventory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-002
     title: Lost primary factor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-003
     title: Lost secondary factor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-004
     title: MFA bypass eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-005
     title: MFA bypass duration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-006
     title: MFA re enrollment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: mfa-recovery-007
     title: MFA recovery notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
   childs:
   - slug: session-continuity-001
     title: Pre recovery session handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: session-continuity-002
     title: In progress recovery session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: session-continuity-003
     title: Post recovery session issuance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: session-continuity-004
     title: Session rotation after reset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: session-continuity-005
     title: Session invalidation scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: session-continuity-006
     title: Remembered device treatment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: session-continuity-007
     title: Cross device recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
   childs:
   - slug: reauthentication-001
     title: Reauthentication trigger
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: reauthentication-002
     title: Reauthentication factor selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: reauthentication-003
     title: Recent authentication window
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: reauthentication-004
     title: Reauthentication failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: reauthentication-005
     title: Reauthentication retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: reauthentication-006
     title: Reauthentication after recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: reauthentication-007
     title: Reauthentication evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
   childs:
   - slug: step-up-verification-001
     title: Step up verification purpose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: step-up-verification-002
     title: Step up assurance levels
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: step-up-verification-003
     title: Step up factor selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: step-up-verification-004
     title: Step up challenge creation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: step-up-verification-005
     title: Step up challenge completion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: step-up-verification-006
     title: Step up challenge timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: step-up-verification-007
     title: Step up recovery fallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
   childs:
   - slug: identity-proofing-001
     title: Identity proofing levels
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: identity-proofing-002
     title: Identity proofing evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: identity-proofing-003
     title: Identity proofing decision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: identity-proofing-004
     title: Identity proofing provider
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: identity-proofing-005
     title: Identity proofing confidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: identity-proofing-006
     title: Identity proofing rejection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: identity-proofing-007
     title: Identity proofing retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
   childs:
   - slug: document-verification-001
     title: Identity document capture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: document-verification-002
     title: Document authenticity checks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: document-verification-003
     title: Document liveness checks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: document-verification-004
     title: Document data extraction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: document-verification-005
     title: Document mismatch handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: document-verification-006
     title: Document verification vendor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: document-verification-007
     title: Document evidence deletion
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
   childs:
   - slug: knowledge-based-proofing-001
     title: Knowledge proofing scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-002
     title: Public knowledge risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-003
     title: Private knowledge risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-004
     title: Knowledge answer scoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-005
     title: Knowledge proofing attempt limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-006
     title: Knowledge proofing fallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: knowledge-based-proofing-007
     title: Knowledge proofing deprecation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
   childs:
   - slug: social-signals-001
     title: Trusted contact recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: social-signals-002
     title: Social proof selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: social-signals-003
     title: Contact invitation security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: social-signals-004
     title: Contact response integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: social-signals-005
     title: Contact privacy boundaries
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: social-signals-006
     title: Contact abuse prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: social-signals-007
     title: Social proof expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
   childs:
   - slug: recovery-tokens-001
     title: Recovery token purpose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-002
     title: Recovery token format
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-003
     title: Recovery token entropy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-004
     title: Recovery token length
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-005
     title: Recovery token parsing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-006
     title: Recovery token comparison
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: recovery-tokens-007
     title: Recovery token error handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
   childs:
   - slug: token-lifecycle-001
     title: Token creation event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-002
     title: Token activation event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-003
     title: Token consumption event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-004
     title: Token expiration event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2152,7 +2152,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-005
     title: Token revocation event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-006
     title: Token replacement event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: token-lifecycle-007
     title: Token lifecycle audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
   childs:
   - slug: token-binding-001
     title: Binding token to account
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: token-binding-002
     title: Binding token to transaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: token-binding-003
     title: Binding token to device
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: token-binding-004
     title: Binding token to channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: token-binding-005
     title: Binding token to browser
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: token-binding-006
     title: Binding token to client context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
     summary: ''
   - slug: token-binding-007
     title: Binding token to risk decision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
   childs:
   - slug: token-storage-001
     title: Hashed token storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: token-storage-002
     title: Token lookup strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: token-storage-003
     title: Token record separation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: token-storage-004
     title: Token database access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: token-storage-005
     title: Token storage encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: token-storage-006
     title: Token cleanup schedule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: token-storage-007
     title: Token storage incident response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
   childs:
   - slug: cryptographic-design-001
     title: Randomness source selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-002
     title: Hash algorithm selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-003
     title: Message authentication design
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-004
     title: Key management boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-005
     title: Cryptographic key rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-006
     title: Constant time comparison
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: cryptographic-design-007
     title: Cryptographic failure handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
   childs:
   - slug: link-security-001
     title: Secure recovery link scheme
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: link-security-002
     title: Link leakage in referrer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: link-security-003
     title: Link leakage in history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: link-security-004
     title: Link leakage in logs
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: link-security-005
     title: Link leakage in analytics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: link-security-006
     title: Link forwarding behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: link-security-007
     title: Link preview protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
   childs:
   - slug: browser-security-001
     title: Recovery page origin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: browser-security-002
     title: Recovery page framing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: browser-security-003
     title: Recovery page script policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: browser-security-004
     title: Recovery page storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: browser-security-005
     title: Recovery page cache policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: browser-security-006
     title: Recovery page navigation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: browser-security-007
     title: Recovery page autofill
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
   childs:
   - slug: api-security-001
     title: Recovery API resource model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: api-security-002
     title: Recovery API authentication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: api-security-003
     title: Recovery API authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: api-security-004
     title: Recovery API request limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: api-security-005
     title: Recovery API error contract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: api-security-006
     title: Recovery API versioning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: api-security-007
     title: Recovery API compatibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
   childs:
   - slug: csrf-protection-001
     title: Cross site request forgery risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: csrf-protection-002
     title: CSRF token for recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: csrf-protection-003
     title: Same site cookie policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: csrf-protection-004
     title: Origin validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: csrf-protection-005
     title: Referer validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: csrf-protection-006
     title: Cross origin recovery calls
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: csrf-protection-007
     title: CSRF test coverage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
   childs:
   - slug: phishing-resistance-001
     title: Recovery message authenticity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-002
     title: Lookalike domain defense
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-003
     title: Anti phishing user guidance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-004
     title: Trusted origin display
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-005
     title: Out of band confirmation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-006
     title: Phishing report handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: phishing-resistance-007
     title: Phishing resistant factors
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
   childs:
   - slug: replay-defense-001
     title: Recovery request replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: replay-defense-002
     title: Challenge response replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: replay-defense-003
     title: Link replay attempt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: replay-defense-004
     title: OTP replay attempt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
     summary: ''
   - slug: replay-defense-005
     title: Device replay attempt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: replay-defense-006
     title: Replay detection state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: replay-defense-007
     title: Replay incident response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
   childs:
   - slug: abuse-prevention-001
     title: Automated recovery abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-002
     title: Enumeration abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-003
     title: Notification flooding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-004
     title: Channel exhaustion abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-005
     title: Referral abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-006
     title: Support channel abuse
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: abuse-prevention-007
     title: Abuse response escalation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
   childs:
   - slug: rate-limiting-001
     title: Per account rate limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: rate-limiting-002
     title: Per identifier rate limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: rate-limiting-003
     title: Per network rate limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: rate-limiting-004
     title: Per device rate limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: rate-limiting-005
     title: Per recovery token limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: rate-limiting-006
     title: Distributed limiter state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: rate-limiting-007
     title: Rate limit user feedback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
   childs:
   - slug: risk-based-recovery-001
     title: Recovery risk score
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-002
     title: Risk signal weighting
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-003
     title: Risk threshold policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-004
     title: Low risk recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-005
     title: Medium risk recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-006
     title: High risk recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: risk-based-recovery-007
     title: Risk decision explanation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
   childs:
   - slug: fraud-signals-001
     title: Impossible travel signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: fraud-signals-002
     title: New device signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: fraud-signals-003
     title: New network signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: fraud-signals-004
     title: Recent credential change signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: fraud-signals-005
     title: Mailbox compromise signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: fraud-signals-006
     title: Phone takeover signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: fraud-signals-007
     title: Fraud signal retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
   childs:
   - slug: privacy-boundaries-001
     title: Account existence privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-002
     title: Contact detail privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-003
     title: Recovery evidence privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-004
     title: Support agent privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-005
     title: Provider data minimization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-006
     title: Sensitive log redaction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: privacy-boundaries-007
     title: Privacy request handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3106,7 +3106,7 @@ menu:
   childs:
   - slug: user-messaging-001
     title: Generic recovery response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3115,7 +3115,7 @@ menu:
     summary: ''
   - slug: user-messaging-002
     title: Failure message wording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3124,7 +3124,7 @@ menu:
     summary: ''
   - slug: user-messaging-003
     title: Success message wording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3133,7 +3133,7 @@ menu:
     summary: ''
   - slug: user-messaging-004
     title: Security warning wording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3142,7 +3142,7 @@ menu:
     summary: ''
   - slug: user-messaging-005
     title: Contact change notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
     summary: ''
   - slug: user-messaging-006
     title: Recovery delay notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: user-messaging-007
     title: Compromise notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3172,7 +3172,7 @@ menu:
   childs:
   - slug: accessibility-001
     title: Keyboard recovery flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3181,7 +3181,7 @@ menu:
     summary: ''
   - slug: accessibility-002
     title: Screen reader recovery flow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3190,7 +3190,7 @@ menu:
     summary: ''
   - slug: accessibility-003
     title: Visible focus treatment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3199,7 +3199,7 @@ menu:
     summary: ''
   - slug: accessibility-004
     title: Error announcement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3208,7 +3208,7 @@ menu:
     summary: ''
   - slug: accessibility-005
     title: Timeout announcement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3217,7 +3217,7 @@ menu:
     summary: ''
   - slug: accessibility-006
     title: Alternative verification method
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3226,7 +3226,7 @@ menu:
     summary: ''
   - slug: accessibility-007
     title: Accessible document capture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
   childs:
   - slug: internationalization-001
     title: Localized recovery emails
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: internationalization-002
     title: Localized recovery errors
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3256,7 +3256,7 @@ menu:
     summary: ''
   - slug: internationalization-003
     title: Localized date handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3265,7 +3265,7 @@ menu:
     summary: ''
   - slug: internationalization-004
     title: Localized phone formatting
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3274,7 +3274,7 @@ menu:
     summary: ''
   - slug: internationalization-005
     title: Localized legal notices
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3283,7 +3283,7 @@ menu:
     summary: ''
   - slug: internationalization-006
     title: Translation consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3292,7 +3292,7 @@ menu:
     summary: ''
   - slug: internationalization-007
     title: Right to left recovery layout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
   childs:
   - slug: recovery-ux-001
     title: Recovery form simplicity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: recovery-ux-002
     title: Progressive disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: recovery-ux-003
     title: Recovery progress indicator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: recovery-ux-004
     title: Safe retry experience
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: recovery-ux-005
     title: Recovery timeout experience
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3349,7 +3349,7 @@ menu:
     summary: ''
   - slug: recovery-ux-006
     title: Recovery cancellation experience
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3358,7 +3358,7 @@ menu:
     summary: ''
   - slug: recovery-ux-007
     title: Recovery completion guidance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
   childs:
   - slug: data-model-001
     title: Recovery request entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: data-model-002
     title: Recovery challenge entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: data-model-003
     title: Recovery factor entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: data-model-004
     title: Recovery evidence entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: data-model-005
     title: Recovery decision entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: data-model-006
     title: Recovery notification entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: data-model-007
     title: Recovery audit entity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
   childs:
   - slug: persistence-001
     title: Transactional recovery writes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: persistence-002
     title: Consistency of recovery state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: persistence-003
     title: Concurrent recovery attempts
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: persistence-004
     title: Database constraint design
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: persistence-005
     title: Expired record cleanup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: persistence-006
     title: Recovery record migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: persistence-007
     title: Recovery data partitioning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3502,7 +3502,7 @@ menu:
   childs:
   - slug: notifications-001
     title: Recovery initiation notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
     summary: ''
   - slug: notifications-002
     title: Recovery completion notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: notifications-003
     title: Recovery failure notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
     summary: ''
   - slug: notifications-004
     title: Factor change notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: notifications-005
     title: Security contact notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: notifications-006
     title: Notification deduplication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: notifications-007
     title: Notification delivery status
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3568,7 +3568,7 @@ menu:
   childs:
   - slug: audit-logging-001
     title: Recovery event taxonomy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3577,7 +3577,7 @@ menu:
     summary: ''
   - slug: audit-logging-002
     title: Recovery actor recording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3586,7 +3586,7 @@ menu:
     summary: ''
   - slug: audit-logging-003
     title: Recovery outcome recording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3595,7 +3595,7 @@ menu:
     summary: ''
   - slug: audit-logging-004
     title: Audit event integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3604,7 +3604,7 @@ menu:
     summary: ''
   - slug: audit-logging-005
     title: Audit event retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3613,7 +3613,7 @@ menu:
     summary: ''
   - slug: audit-logging-006
     title: Audit access control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
     summary: ''
   - slug: audit-logging-007
     title: Audit investigation workflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3634,7 +3634,7 @@ menu:
   childs:
   - slug: observability-001
     title: Recovery metrics collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3643,7 +3643,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Recovery trace correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3652,7 +3652,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Recovery structured logging
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3661,7 +3661,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Recovery dashboard design
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3670,7 +3670,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Recovery alert thresholds
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3679,7 +3679,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Provider dependency monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3688,7 +3688,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Observability data privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3700,7 +3700,7 @@ menu:
   childs:
   - slug: support-recovery-001
     title: Support recovery intake
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3709,7 +3709,7 @@ menu:
     summary: ''
   - slug: support-recovery-002
     title: Support identity verification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3718,7 +3718,7 @@ menu:
     summary: ''
   - slug: support-recovery-003
     title: Support agent boundaries
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3727,7 +3727,7 @@ menu:
     summary: ''
   - slug: support-recovery-004
     title: Support evidence checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3736,7 +3736,7 @@ menu:
     summary: ''
   - slug: support-recovery-005
     title: Support approval workflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3745,7 +3745,7 @@ menu:
     summary: ''
   - slug: support-recovery-006
     title: Support denial workflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3754,7 +3754,7 @@ menu:
     summary: ''
   - slug: support-recovery-007
     title: Support action audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3766,7 +3766,7 @@ menu:
   childs:
   - slug: administrative-recovery-001
     title: Administrator recovery scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3775,7 +3775,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-002
     title: Administrator factor override
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3784,7 +3784,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-003
     title: Administrator dual control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3793,7 +3793,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-004
     title: Administrator approval expiry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3802,7 +3802,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-005
     title: Administrator session security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3811,7 +3811,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-006
     title: Administrator notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3820,7 +3820,7 @@ menu:
     summary: ''
   - slug: administrative-recovery-007
     title: Administrator action review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3832,7 +3832,7 @@ menu:
   childs:
   - slug: recovery-approval-001
     title: Approval request creation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3841,7 +3841,7 @@ menu:
     summary: ''
   - slug: recovery-approval-002
     title: Approval reviewer selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3850,7 +3850,7 @@ menu:
     summary: ''
   - slug: recovery-approval-003
     title: Approval evidence review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3859,7 +3859,7 @@ menu:
     summary: ''
   - slug: recovery-approval-004
     title: Approval separation of duties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3868,7 +3868,7 @@ menu:
     summary: ''
   - slug: recovery-approval-005
     title: Approval expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3877,7 +3877,7 @@ menu:
     summary: ''
   - slug: recovery-approval-006
     title: Approval rejection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3886,7 +3886,7 @@ menu:
     summary: ''
   - slug: recovery-approval-007
     title: Approval decision audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
   childs:
   - slug: account-merge-001
     title: Account merge eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3907,7 +3907,7 @@ menu:
     summary: ''
   - slug: account-merge-002
     title: Account ownership proof
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3916,7 +3916,7 @@ menu:
     summary: ''
   - slug: account-merge-003
     title: Credential conflict resolution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3925,7 +3925,7 @@ menu:
     summary: ''
   - slug: account-merge-004
     title: Factor conflict resolution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3934,7 +3934,7 @@ menu:
     summary: ''
   - slug: account-merge-005
     title: Profile data reconciliation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3943,7 +3943,7 @@ menu:
     summary: ''
   - slug: account-merge-006
     title: Merge rollback strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3952,7 +3952,7 @@ menu:
     summary: ''
   - slug: account-merge-007
     title: Account merge audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
   childs:
   - slug: data-preservation-001
     title: Preserving user profile data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: data-preservation-002
     title: Preserving authorization data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: data-preservation-003
     title: Preserving audit history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: data-preservation-004
     title: Preserving user preferences
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4000,7 +4000,7 @@ menu:
     summary: ''
   - slug: data-preservation-005
     title: Preserving recovery evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4009,7 +4009,7 @@ menu:
     summary: ''
   - slug: data-preservation-006
     title: Handling orphaned records
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4018,7 +4018,7 @@ menu:
     summary: ''
   - slug: data-preservation-007
     title: Data deletion after recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4030,7 +4030,7 @@ menu:
   childs:
   - slug: backup-restore-001
     title: Recovery data backup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4039,7 +4039,7 @@ menu:
     summary: ''
   - slug: backup-restore-002
     title: Recovery data encryption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4048,7 +4048,7 @@ menu:
     summary: ''
   - slug: backup-restore-003
     title: Backup access control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4057,7 +4057,7 @@ menu:
     summary: ''
   - slug: backup-restore-004
     title: Restore validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
     summary: ''
   - slug: backup-restore-005
     title: Restore replay protection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: backup-restore-006
     title: Recovery disaster procedure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: backup-restore-007
     title: Backup recovery audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4096,7 +4096,7 @@ menu:
   childs:
   - slug: multi-tenant-recovery-001
     title: Tenant recovery policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4105,7 +4105,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-002
     title: Tenant isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4114,7 +4114,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-003
     title: Tenant contact configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4123,7 +4123,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-004
     title: Tenant factor configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4132,7 +4132,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-005
     title: Tenant support boundaries
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4141,7 +4141,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-006
     title: Tenant notification routing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4150,7 +4150,7 @@ menu:
     summary: ''
   - slug: multi-tenant-recovery-007
     title: Tenant recovery audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4162,7 +4162,7 @@ menu:
   childs:
   - slug: distributed-systems-001
     title: Recovery state across services
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4171,7 +4171,7 @@ menu:
     summary: ''
   - slug: distributed-systems-002
     title: Idempotent distributed commands
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4180,7 +4180,7 @@ menu:
     summary: ''
   - slug: distributed-systems-003
     title: Cross service consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4189,7 +4189,7 @@ menu:
     summary: ''
   - slug: distributed-systems-004
     title: Distributed lock strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4198,7 +4198,7 @@ menu:
     summary: ''
   - slug: distributed-systems-005
     title: Clock skew handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4207,7 +4207,7 @@ menu:
     summary: ''
   - slug: distributed-systems-006
     title: Partial failure handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4216,7 +4216,7 @@ menu:
     summary: ''
   - slug: distributed-systems-007
     title: Recovery reconciliation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4228,7 +4228,7 @@ menu:
   childs:
   - slug: microservice-boundaries-001
     title: Identity service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4237,7 +4237,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-002
     title: Factor service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4246,7 +4246,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-003
     title: Notification service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4255,7 +4255,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-004
     title: Risk service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4264,7 +4264,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-005
     title: Audit service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4273,7 +4273,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-006
     title: Support service responsibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4282,7 +4282,7 @@ menu:
     summary: ''
   - slug: microservice-boundaries-007
     title: Recovery orchestration boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4294,7 +4294,7 @@ menu:
   childs:
   - slug: event-driven-recovery-001
     title: Recovery initiated event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4303,7 +4303,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-002
     title: Challenge issued event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4312,7 +4312,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-003
     title: Verification passed event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4321,7 +4321,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-004
     title: Password changed event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4330,7 +4330,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-005
     title: Factor replaced event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4339,7 +4339,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-006
     title: Recovery completed event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4348,7 +4348,7 @@ menu:
     summary: ''
   - slug: event-driven-recovery-007
     title: Recovery event ordering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4360,7 +4360,7 @@ menu:
   childs:
   - slug: testing-strategy-001
     title: Recovery unit tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4369,7 +4369,7 @@ menu:
     summary: ''
   - slug: testing-strategy-002
     title: Recovery integration tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4378,7 +4378,7 @@ menu:
     summary: ''
   - slug: testing-strategy-003
     title: Recovery contract tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4387,7 +4387,7 @@ menu:
     summary: ''
   - slug: testing-strategy-004
     title: Recovery browser tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4396,7 +4396,7 @@ menu:
     summary: ''
   - slug: testing-strategy-005
     title: Recovery provider tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4405,7 +4405,7 @@ menu:
     summary: ''
   - slug: testing-strategy-006
     title: Recovery regression suite
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4414,7 +4414,7 @@ menu:
     summary: ''
   - slug: testing-strategy-007
     title: Recovery test data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4426,7 +4426,7 @@ menu:
   childs:
   - slug: security-testing-001
     title: Enumeration security test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4435,7 +4435,7 @@ menu:
     summary: ''
   - slug: security-testing-002
     title: Token guessing security test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4444,7 +4444,7 @@ menu:
     summary: ''
   - slug: security-testing-003
     title: Replay security test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4453,7 +4453,7 @@ menu:
     summary: ''
   - slug: security-testing-004
     title: Rate limit security test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4462,7 +4462,7 @@ menu:
     summary: ''
   - slug: security-testing-005
     title: Session invalidation test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4471,7 +4471,7 @@ menu:
     summary: ''
   - slug: security-testing-006
     title: Privilege escalation test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4480,7 +4480,7 @@ menu:
     summary: ''
   - slug: security-testing-007
     title: Sensitive logging test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4492,7 +4492,7 @@ menu:
   childs:
   - slug: chaos-failure-testing-001
     title: Email provider outage test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4501,7 +4501,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-002
     title: SMS provider outage test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4510,7 +4510,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-003
     title: Database outage test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4519,7 +4519,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-004
     title: Clock skew failure test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4528,7 +4528,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-005
     title: Duplicate event failure test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4537,7 +4537,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-006
     title: Network timeout failure test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4546,7 +4546,7 @@ menu:
     summary: ''
   - slug: chaos-failure-testing-007
     title: Recovery retry storm test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4558,7 +4558,7 @@ menu:
   childs:
   - slug: incident-response-001
     title: Recovery compromise detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4567,7 +4567,7 @@ menu:
     summary: ''
   - slug: incident-response-002
     title: Emergency recovery shutdown
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4576,7 +4576,7 @@ menu:
     summary: ''
   - slug: incident-response-003
     title: Token mass revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4585,7 +4585,7 @@ menu:
     summary: ''
   - slug: incident-response-004
     title: Forced factor reset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4594,7 +4594,7 @@ menu:
     summary: ''
   - slug: incident-response-005
     title: Affected user notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4603,7 +4603,7 @@ menu:
     summary: ''
   - slug: incident-response-006
     title: Forensic evidence preservation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4612,7 +4612,7 @@ menu:
     summary: ''
   - slug: incident-response-007
     title: Post incident recovery review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4624,7 +4624,7 @@ menu:
   childs:
   - slug: compliance-001
     title: Recovery control mapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4633,7 +4633,7 @@ menu:
     summary: ''
   - slug: compliance-002
     title: Evidence retention policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4642,7 +4642,7 @@ menu:
     summary: ''
   - slug: compliance-003
     title: User consent requirements
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4651,7 +4651,7 @@ menu:
     summary: ''
   - slug: compliance-004
     title: Data protection obligations
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4660,7 +4660,7 @@ menu:
     summary: ''
   - slug: compliance-005
     title: Audit readiness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4669,7 +4669,7 @@ menu:
     summary: ''
   - slug: compliance-006
     title: Regional recovery constraints
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4678,7 +4678,7 @@ menu:
     summary: ''
   - slug: compliance-007
     title: Compliance exception handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4690,7 +4690,7 @@ menu:
   childs:
   - slug: metrics-001
     title: Recovery initiation rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4699,7 +4699,7 @@ menu:
     summary: ''
   - slug: metrics-002
     title: Recovery completion rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4708,7 +4708,7 @@ menu:
     summary: ''
   - slug: metrics-003
     title: Recovery failure rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4717,7 +4717,7 @@ menu:
     summary: ''
   - slug: metrics-004
     title: Recovery abandonment rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4726,7 +4726,7 @@ menu:
     summary: ''
   - slug: metrics-005
     title: Recovery abuse rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4735,7 +4735,7 @@ menu:
     summary: ''
   - slug: metrics-006
     title: Provider delivery rate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4744,7 +4744,7 @@ menu:
     summary: ''
   - slug: metrics-007
     title: Recovery time measurement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4756,7 +4756,7 @@ menu:
   childs:
   - slug: documentation-001
     title: Recovery flow documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4765,7 +4765,7 @@ menu:
     summary: ''
   - slug: documentation-002
     title: Recovery policy documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4774,7 +4774,7 @@ menu:
     summary: ''
   - slug: documentation-003
     title: Recovery API documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4783,7 +4783,7 @@ menu:
     summary: ''
   - slug: documentation-004
     title: Recovery support runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4792,7 +4792,7 @@ menu:
     summary: ''
   - slug: documentation-005
     title: Recovery incident runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4801,7 +4801,7 @@ menu:
     summary: ''
   - slug: documentation-006
     title: Recovery threat documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4810,7 +4810,7 @@ menu:
     summary: ''
   - slug: documentation-007
     title: Recovery change log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4822,7 +4822,7 @@ menu:
   childs:
   - slug: spring-security-integration-001
     title: Spring Security recovery boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4831,7 +4831,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-002
     title: SecurityContext after recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4840,7 +4840,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-003
     title: PasswordEncoder integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4849,7 +4849,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-004
     title: SessionRegistry integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4858,7 +4858,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-005
     title: Remember me treatment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4867,7 +4867,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-006
     title: Authentication event listeners
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4876,7 +4876,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-007
     title: Spring Security test support
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4888,7 +4888,7 @@ menu:
   childs:
   - slug: deployment-operations-001
     title: Recovery configuration management
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4897,7 +4897,7 @@ menu:
     summary: ''
   - slug: deployment-operations-002
     title: Secret injection for recovery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4906,7 +4906,7 @@ menu:
     summary: ''
   - slug: deployment-operations-003
     title: Provider credential rotation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4915,7 +4915,7 @@ menu:
     summary: ''
   - slug: deployment-operations-004
     title: Feature flag rollout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4924,7 +4924,7 @@ menu:
     summary: ''
   - slug: deployment-operations-005
     title: Blue green recovery deployment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4933,7 +4933,7 @@ menu:
     summary: ''
   - slug: deployment-operations-006
     title: Rollback after recovery defect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4942,7 +4942,7 @@ menu:
     summary: ''
   - slug: deployment-operations-007
     title: Production recovery checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Cloud Function là gì và bài toán triển khai nghiệp vụ bằng hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Quan hệ giữa hàm Java, Spring bean và hàm trong FunctionCatalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Tách nghiệp vụ khỏi giao thức truyền dữ liệu và nền tảng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Vai trò của Supplier, Function, Consumer và bộ điều hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Quan hệ với Spring Boot, Spring Cloud Stream và Spring Cloud Task
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Phân biệt hàm nghiệp vụ với controller, WebFlux.fn và AWS Lambda
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: 'Các cách chạy: trong ứng dụng, HTTP, messaging và serverless'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Trường hợp phù hợp và giới hạn của mô hình hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: initialization-001
     title: Kiến thức nền về Java functional interface, Spring Boot và Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: initialization-002
     title: Chọn phiên bản Java, Spring Boot và Spring Cloud BOM tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: initialization-003
     title: Các module context, web, deployer và adapter nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: initialization-004
     title: Khai báo phụ thuộc bằng Maven hoặc Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: initialization-005
     title: Tạo Function<String, String> đầu tiên bằng @Bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: initialization-006
     title: Gọi hàm từ FunctionCatalog và từ HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: initialization-007
     title: Chọn hàm bằng spring.cloud.function.definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: initialization-008
     title: Chạy cục bộ, đóng gói và kiểm tra đầu vào đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
   childs:
   - slug: function-model-001
     title: 'Supplier<T>: tạo dữ liệu không nhận đầu vào'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: function-model-002
     title: 'Function<T, R>: biến đổi đầu vào thành kết quả'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: function-model-003
     title: 'Consumer<T>: xử lý dữ liệu và tác dụng phụ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: function-model-004
     title: BiFunction và BiConsumer với payload cùng Map chứa header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: function-model-005
     title: Khai báo hàm bằng lambda, method reference và lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: function-model-006
     title: Đặt tên bean và sử dụng dependency injection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: function-model-007
     title: Hàm không phụ thuộc Spring và lớp điều hợp bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: function-model-008
     title: Vòng đời singleton, trạng thái dùng chung và an toàn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: function-model-009
     title: Thiết kế hợp đồng đầu vào đầu ra và xử lý dữ liệu không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
   childs:
   - slug: functioncatalog-001
     title: Cơ chế phát hiện và đăng ký các functional bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: functioncatalog-002
     title: Tra cứu theo tên và theo loại hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: functioncatalog-003
     title: Liệt kê tên hàm và kiểm tra nội dung catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: functioncatalog-004
     title: Quy tắc tra cứu khi chỉ có một hàm và khi có nhiều hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: functioncatalog-005
     title: Đối chiếu chế độ tra cứu dự phòng khi chỉ có một hàm theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: functioncatalog-006
     title: Phân biệt gọi bean trực tiếp với gọi qua FunctionCatalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: functioncatalog-007
     title: Vai trò của FunctionInvocationWrapper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: functioncatalog-008
     title: Chọn một hàm hoặc định nghĩa ghép hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: functioncatalog-009
     title: Loại trừ bean bằng spring.cloud.function.ineligible-definitions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: functioncatalog-010
     title: Nhận diện hàm không tồn tại, sai tên hoặc sai chữ ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
   childs:
   - slug: data-types-001
     title: Suy luận kiểu đầu vào đầu ra từ chữ ký generic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: data-types-002
     title: Mất thông tin kiểu khi dùng raw type, Object hoặc lambda đăng ký động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: data-types-003
     title: FunctionRegistration và khai báo thông tin kiểu tường minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: data-types-004
     title: Chuyển đổi String, byte[], POJO và tập hợp dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: data-types-005
     title: Vai trò của MessageConverter và ConversionService
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: data-types-006
     title: Quan hệ giữa contentType và kiểu đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: data-types-007
     title: Chuyển đổi JSON với JsonMessageConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: data-types-008
     title: StringMessageConverter và ByteArrayMessageConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: data-types-009
     title: Tùy chọn JsonMapper, Jackson và Gson theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: data-types-010
     title: Đăng ký MessageConverter tùy chỉnh và thứ tự lựa chọn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: data-types-011
     title: Chuyển đổi kiểu giữa các hàm trong một chuỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: data-types-012
     title: Lỗi JSON, kiểu không tương thích và giới hạn giải tuần tự hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
   childs:
   - slug: messages-001
     title: Cấu trúc Message<T>, payload và MessageHeaders
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: messages-002
     title: Nhận hoặc trả Message thay cho POJO thuần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: messages-003
     title: Tạo phản hồi bằng MessageBuilder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: messages-004
     title: Ánh xạ HTTP header và metadata nền tảng vào Message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: messages-005
     title: Phân biệt header đầu vào, header đầu ra và header truyền tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: messages-006
     title: Sao chép có chọn lọc header và cấu hình copy-input-headers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: messages-007
     title: Bổ sung header bằng input-header-mapping-expression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: messages-008
     title: Bổ sung header bằng output-header-mapping-expression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: messages-009
     title: Xử lý biểu thức bổ sung header thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -523,7 +523,7 @@ menu:
     summary: ''
   - slug: messages-010
     title: Truyền mã liên kết, phiên bản dữ liệu và thông tin truy vết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
   childs:
   - slug: reactive-streams-001
     title: Mono, Flux và chữ ký hàm phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: reactive-streams-002
     title: Phân biệt gọi hàm theo từng phần tử với gọi một lần cho cả luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: reactive-streams-003
     title: Supplier<Flux<T>> với luồng hữu hạn và luồng liên tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: reactive-streams-004
     title: '@PollableBean, splittable và trách nhiệm của cơ chế polling bên ngoài'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: reactive-streams-005
     title: Consumer<Flux<T>> và trách nhiệm đăng ký nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: reactive-streams-006
     title: Function<Flux<T>, Mono<Void>> cho xử lý bất đồng bộ không trả dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
     summary: ''
   - slug: reactive-streams-007
     title: Điều tiết tốc độ theo nhu cầu nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: reactive-streams-008
     title: Thứ tự phần tử khi dùng map, flatMap và concatMap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -607,7 +607,7 @@ menu:
     summary: ''
   - slug: reactive-streams-009
     title: Tránh chặn luồng và lựa chọn Scheduler cho thao tác chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -616,7 +616,7 @@ menu:
     summary: ''
   - slug: reactive-streams-010
     title: Kết thúc, hủy đăng ký và giải phóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -625,7 +625,7 @@ menu:
     summary: ''
   - slug: reactive-streams-011
     title: Xử lý lỗi theo phần tử và lỗi kết thúc cả luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
   childs:
   - slug: function-composition-001
     title: Ghép hàm bằng Function.andThen và Function.compose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: function-composition-002
     title: Ghép theo tên bằng FunctionCatalog.lookup
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: function-composition-003
     title: spring.cloud.function.definition với dấu | hoặc dấu phẩy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: function-composition-004
     title: Thứ tự thực thi và tương thích kiểu giữa các bước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: function-composition-005
     title: Ghép Supplier với Function
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: function-composition-006
     title: Ghép Function với Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: function-composition-007
     title: Ghép Supplier với Consumer và kết quả tương đương Runnable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -700,7 +700,7 @@ menu:
     summary: ''
   - slug: function-composition-008
     title: Những thứ tự ghép không hợp lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -709,7 +709,7 @@ menu:
     summary: ''
   - slug: function-composition-009
     title: Ghép hàm đồng bộ với hàm phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -718,7 +718,7 @@ menu:
     summary: ''
   - slug: function-composition-010
     title: Tách kiểm tra, biến đổi và nghiệp vụ thành các hàm dùng lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
   childs:
   - slug: function-routing-001
     title: RoutingFunction và tên functionRouter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: function-routing-002
     title: Chọn hàm cố định bằng thuộc tính cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: function-routing-003
     title: Định tuyến bằng header spring.cloud.function.definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: function-routing-004
     title: Định tuyến động bằng spring.cloud.function.routing-expression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: function-routing-005
     title: Truy cập payload và headers trong biểu thức SpEL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: function-routing-006
     title: Tùy chỉnh lựa chọn hàm bằng MessageRoutingCallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -784,7 +784,7 @@ menu:
     summary: ''
   - slug: function-routing-007
     title: Thứ tự ưu tiên callback, header và thuộc tính ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -793,7 +793,7 @@ menu:
     summary: ''
   - slug: function-routing-008
     title: Định tuyến từng thông điệp với hàm đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -802,7 +802,7 @@ menu:
     summary: ''
   - slug: function-routing-009
     title: Định tuyến cả luồng với hàm phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -811,7 +811,7 @@ menu:
     summary: ''
   - slug: function-routing-010
     title: Xử lý không tìm thấy hàm bằng DefaultMessageRoutingHandler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -820,7 +820,7 @@ menu:
     summary: ''
   - slug: function-routing-011
     title: Lọc dữ liệu bằng nhánh xử lý và nhánh loại bỏ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -829,7 +829,7 @@ menu:
     summary: ''
   - slug: function-routing-012
     title: Tạo nhiều router với tên và cấu hình riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
     summary: ''
   - slug: function-routing-013
     title: Giới hạn hàm đích và nguồn cung cấp biểu thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
   childs:
   - slug: multiple-inputs-outputs-001
     title: Khái niệm số đầu vào và đầu ra của hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -859,7 +859,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-002
     title: Biểu diễn nhiều luồng bằng Tuple của Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-003
     title: Tách một luồng thành nhiều đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -877,7 +877,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-004
     title: Kết hợp nhiều đầu vào và đồng bộ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -886,7 +886,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-005
     title: Phân biệt nhiều đầu ra với một đầu ra chứa Collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -895,7 +895,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-006
     title: Thông tin kiểu và chỉ số từng đầu vào đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -904,7 +904,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-007
     title: Ánh xạ chỉ số sang binding của Spring Cloud Stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -913,7 +913,7 @@ menu:
     summary: ''
   - slug: multiple-inputs-outputs-008
     title: Giới hạn chữ ký và hỗ trợ của từng adapter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -925,7 +925,7 @@ menu:
   childs:
   - slug: http-001
     title: Xuất functional bean thành HTTP endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -934,7 +934,7 @@ menu:
     summary: ''
   - slug: http-002
     title: Chọn web module và đối chiếu hỗ trợ MVC/WebFlux theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
     summary: ''
   - slug: http-003
     title: Quy tắc đường dẫn theo tên hàm và đường dẫn gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
     summary: ''
   - slug: http-004
     title: Tùy chỉnh đường dẫn bằng spring.cloud.function.web.path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: http-005
     title: HTTP method và phản hồi của Supplier, Function, Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: http-006
     title: Truyền đầu vào qua request body và biến đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -979,7 +979,7 @@ menu:
     summary: ''
   - slug: http-007
     title: Đọc query parameter qua header http_request_param
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -988,7 +988,7 @@ menu:
     summary: ''
   - slug: http-008
     title: Content-Type, Accept và thương lượng dạng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
     summary: ''
   - slug: http-009
     title: Trả một giá trị, tập hợp hoặc luồng Server-Sent Events
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: http-010
     title: Ánh xạ hàm ghép vào đường dẫn HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: http-011
     title: Lọc các hàm được công bố bằng danh sách phân cách bởi dấu chấm phẩy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: http-012
     title: Giới hạn HTTP method bằng spring.cloud.function.http
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: http-013
     title: Truyền và loại bỏ HTTP header ở phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: http-014
     title: Ranh giới giữa endpoint hàm và API web có hợp đồng phức tạp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
   childs:
   - slug: spring-cloud-stream-001
     title: Vai trò của FunctionCatalog trong mô hình lập trình Spring Cloud Stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-002
     title: Ánh xạ Supplier, Function, Consumer thành nguồn, bộ xử lý và đích nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-003
     title: Chọn binder Kafka hoặc RabbitMQ theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-004
     title: Quy ước binding <function>-in-0 và <function>-out-0
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-005
     title: Ánh xạ binding tới destination và consumer group
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-006
     title: Cấu hình một hàm ghép và nhiều định nghĩa độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-007
     title: Nhận gửi POJO, Message và dữ liệu phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-008
     title: Polling Supplier và tách tập hợp phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-009
     title: Nhiều đầu vào đầu ra và thứ tự chỉ số binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-010
     title: Phân chia trách nhiệm chuyển đổi kiểu giữa Function và binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: spring-cloud-stream-011
     title: Ranh giới hỗ trợ retry, xác nhận thông điệp và hàng đợi lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
   childs:
   - slug: spring-integration-001
     title: Quan hệ giữa mô hình hàm và Enterprise Integration Patterns
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: spring-integration-002
     title: Module spring-cloud-function-integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: spring-integration-003
     title: Gọi FunctionCatalog từ IntegrationFlow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: spring-integration-004
     title: FunctionFlowBuilder và fromSupplier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: spring-integration-005
     title: Các toán tử apply và accept với tên hàm hoặc hàm ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: spring-integration-006
     title: Kết hợp hàm với channel, poller, transformer và gateway
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: spring-integration-007
     title: Xử lý lỗi và metadata tại ranh giới luồng tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: spring-integration-008
     title: Tích hợp sự kiện CloudEvents và đối chiếu hỗ trợ phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
   childs:
   - slug: bean-registration-001
     title: Phân biệt @Bean với đăng ký bean theo phong cách functional
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: bean-registration-002
     title: ApplicationContextInitializer và GenericApplicationContext
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: bean-registration-003
     title: FunctionalSpringApplication và điểm vào ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: bean-registration-004
     title: FunctionRegistration với tên và kiểu tường minh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: bean-registration-005
     title: Đăng ký lớp triển khai trực tiếp Supplier, Function hoặc Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: bean-registration-006
     title: Tự quét package functions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: bean-registration-007
     title: Tùy chỉnh spring.cloud.function.scan.packages và scan.enabled
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: bean-registration-008
     title: Kết hợp với Spring Boot auto-configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: bean-registration-009
     title: spring.functional.enabled và giới hạn của chế độ functional
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1312,7 +1312,7 @@ menu:
     summary: ''
   - slug: bean-registration-010
     title: Tác động của cách đăng ký bean tới AOT và native image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
   childs:
   - slug: kotlin-001
     title: Ánh xạ lambda Kotlin sang Supplier, Function và Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: kotlin-002
     title: Phụ thuộc Kotlin và cơ chế nhận diện functional bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: kotlin-003
     title: Khai báo hàm bằng @Bean với chữ ký kiểu rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: kotlin-004
     title: Unit, nullability và tương tác kiểu Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: kotlin-005
     title: Kiểu generic, POJO Kotlin và chuyển đổi JSON
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: kotlin-006
     title: Dùng Mono hoặc Flux từ hàm Kotlin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: kotlin-007
     title: Kiểm thử hàm Kotlin qua FunctionCatalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
   childs:
   - slug: jar-loading-001
     title: Vai trò của spring-cloud-function-deployer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: jar-loading-002
     title: Tách ứng dụng chứa hàm khỏi ứng dụng gọi hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: jar-loading-003
     title: spring.cloud.function.location và vị trí artifact
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: jar-loading-004
     title: Nạp simple JAR bằng spring.cloud.function.function-class
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: jar-loading-005
     title: Nạp Spring Boot JAR và ứng dụng có functional bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: jar-loading-006
     title: Nạp nhiều lớp hàm và quy tắc đặt tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: jar-loading-007
     title: Tra cứu artifact Maven và tùy chỉnh kho artifact
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: jar-loading-008
     title: ClassLoader riêng và ranh giới kiểu giữa các ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1462,7 +1462,7 @@ menu:
     summary: ''
   - slug: jar-loading-009
     title: Vòng đời ApplicationContext của gói được nạp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1471,7 +1471,7 @@ menu:
     summary: ''
   - slug: jar-loading-010
     title: Giới hạn nạp động khi dùng AOT hoặc native image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
   childs:
   - slug: serverless-001
     title: Vai trò của adapter giữa sự kiện nền tảng và hàm nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: serverless-002
     title: Phân biệt hàm tiếp nhận của nền tảng (handler) với bean nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: serverless-003
     title: Chọn một hàm hoặc định tuyến nhiều hàm trong một gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: serverless-004
     title: Đóng gói artifact phù hợp với từng nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: serverless-005
     title: Sự kiện HTTP, sự kiện broker và cấu trúc bao dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: serverless-006
     title: Khởi động lần đầu và tái sử dụng môi trường thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1537,7 +1537,7 @@ menu:
     summary: ''
   - slug: serverless-007
     title: Giới hạn thời gian, bộ nhớ, mức đồng thời và kích thước dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1546,7 +1546,7 @@ menu:
     summary: ''
   - slug: serverless-008
     title: Khác biệt giữa lỗi gọi đồng bộ và lỗi xử lý sự kiện bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1555,7 +1555,7 @@ menu:
     summary: ''
   - slug: serverless-009
     title: Đối chiếu CloudEvents, loại sự kiện và thế hệ runtime được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
   childs:
   - slug: aws-lambda-001
     title: Phụ thuộc spring-cloud-function-adapter-aws
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: aws-lambda-002
     title: Đóng gói JAR cho Lambda và xác định lớp ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: aws-lambda-003
     title: Cấu hình FunctionInvoker::handleRequest làm điểm vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: aws-lambda-004
     title: Chọn hàm bằng biến môi trường spring_cloud_function_definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: aws-lambda-005
     title: Định tuyến nhiều hàm qua một Lambda hoặc nhiều Lambda độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1612,7 +1612,7 @@ menu:
     summary: ''
   - slug: aws-lambda-006
     title: Chuyển đổi sự kiện thành POJO và truy cập InputStream nguyên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1621,7 +1621,7 @@ menu:
     summary: ''
   - slug: aws-lambda-007
     title: Xử lý cấu trúc sự kiện API Gateway, S3 và SQS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1630,7 +1630,7 @@ menu:
     summary: ''
   - slug: aws-lambda-008
     title: Phản hồi lỗi từng phần của lô SQS khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1639,7 +1639,7 @@ menu:
     summary: ''
   - slug: aws-lambda-009
     title: Truy cập thông tin lần gọi và ngữ cảnh AWS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1648,7 +1648,7 @@ menu:
     summary: ''
   - slug: aws-lambda-010
     title: Chạy thử cục bộ và triển khai bằng công cụ hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1657,7 +1657,7 @@ menu:
     summary: ''
   - slug: aws-lambda-011
     title: Custom runtime, bootstrap và đóng gói native image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1666,7 +1666,7 @@ menu:
     summary: ''
   - slug: aws-lambda-012
     title: SnapStart, cấu hình bộ nhớ và điều kiện tương thích runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
   childs:
   - slug: azure-functions-001
     title: Phụ thuộc adapter và tích hợp Spring với Azure Functions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: azure-functions-002
     title: Đăng ký lớp handler bằng @Component và phương thức @FunctionName
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: azure-functions-003
     title: HTTP trigger, các loại trigger khác và binding đầu vào đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1705,7 +1705,7 @@ menu:
     summary: ''
   - slug: azure-functions-004
     title: Tiêm dịch vụ nghiệp vụ và FunctionCatalog vào handler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1714,7 +1714,7 @@ menu:
     summary: ''
   - slug: azure-functions-005
     title: Phân biệt gọi bean trực tiếp với gọi hàm qua catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1723,7 +1723,7 @@ menu:
     summary: ''
   - slug: azure-functions-006
     title: Truy cập ExecutionContext qua AzureFunctionUtil
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1732,7 +1732,7 @@ menu:
     summary: ''
   - slug: azure-functions-007
     title: Cấu hình lớp ứng dụng chính và đóng gói triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1741,7 +1741,7 @@ menu:
     summary: ''
   - slug: azure-functions-008
     title: Chạy cục bộ bằng Azure Functions Core Tools
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1750,7 +1750,7 @@ menu:
     summary: ''
   - slug: azure-functions-009
     title: Cấu hình môi trường, quyền truy cập và triển khai Azure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1759,7 +1759,7 @@ menu:
     summary: ''
   - slug: azure-functions-010
     title: Mô hình FunctionInvoker cũ và hướng chuyển đổi theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
   childs:
   - slug: google-cloud-001
     title: Phụ thuộc spring-cloud-function-adapter-gcp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: google-cloud-002
     title: Vai trò của GcfJarLauncher và lớp ứng dụng chính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: google-cloud-003
     title: Đóng gói artifact và khai báo manifest phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1798,7 +1798,7 @@ menu:
     summary: ''
   - slug: google-cloud-004
     title: Chạy thử bằng Google Functions Framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1807,7 +1807,7 @@ menu:
     summary: ''
   - slug: google-cloud-005
     title: Xử lý HTTP và tùy chỉnh phản hồi qua Message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1816,7 +1816,7 @@ menu:
     summary: ''
   - slug: google-cloud-006
     title: Xử lý sự kiện nền và chuyển đổi dữ liệu theo adapter hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1825,7 +1825,7 @@ menu:
     summary: ''
   - slug: google-cloud-007
     title: Chọn hàm và truyền thuộc tính qua biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1834,7 +1834,7 @@ menu:
     summary: ''
   - slug: google-cloud-008
     title: Đối chiếu thế hệ Cloud Functions, Cloud Run functions và runtime Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1843,7 +1843,7 @@ menu:
     summary: ''
   - slug: google-cloud-009
     title: Cấu hình quyền gọi, trigger và xác minh sau triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1855,7 +1855,7 @@ menu:
   childs:
   - slug: reliability-001
     title: Thiết kế hàm thuần và cô lập tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1864,7 +1864,7 @@ menu:
     summary: ''
   - slug: reliability-002
     title: Xác thực dữ liệu ở ranh giới trước khi chạy nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
     summary: ''
   - slug: reliability-003
     title: Phân biệt ngoại lệ trực tiếp và tín hiệu lỗi Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1882,7 +1882,7 @@ menu:
     summary: ''
   - slug: reliability-004
     title: Chọn vị trí bắt lỗi trong chuỗi hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1891,7 +1891,7 @@ menu:
     summary: ''
   - slug: reliability-005
     title: Thử lại có giới hạn theo cơ chế của adapter hoặc ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1900,7 +1900,7 @@ menu:
     summary: ''
   - slug: reliability-006
     title: Tránh lặp tác dụng phụ khi dữ liệu được gửi lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1909,7 +1909,7 @@ menu:
     summary: ''
   - slug: reliability-007
     title: Ranh giới giao dịch cơ sở dữ liệu và xác nhận thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
     summary: ''
   - slug: reliability-008
     title: Giới hạn thời gian và hủy tác vụ bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: reliability-009
     title: Quản lý trạng thái dùng chung trong môi trường nhiều lần gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: reliability-010
     title: Tiến hóa hợp đồng dữ liệu và xử lý thông điệp không tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1948,7 +1948,7 @@ menu:
   childs:
   - slug: testing-001
     title: Kiểm thử đơn vị hàm Java không khởi động Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử dependency injection và đăng ký FunctionCatalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1966,7 +1966,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: So sánh kết quả gọi bean với kết quả gọi qua catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1975,7 +1975,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử kiểu dữ liệu, contentType và MessageConverter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử thứ tự ghép và lỗi tại từng bước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử ưu tiên định tuyến và thông điệp không có đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử Mono, Flux, lỗi và hủy bằng StepVerifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử HTTP mapping, method, header và mã phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử functional application theo tiện ích phù hợp phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử binder bằng Spring Cloud Stream test binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử hợp đồng sự kiện AWS, Azure và Google Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2047,7 +2047,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử toàn trình, gọi lặp và nhiều lần gọi đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
   childs:
   - slug: security-001
     title: Chỉ công bố các hàm cần thiết cho từng điểm vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Xác thực và phân quyền ở HTTP hoặc nền tảng serverless
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Kiểm soát header định tuyến do bên ngoài cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Giới hạn SpEL và phân biệt nguồn biểu thức tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Bảo vệ thuộc tính cấu hình và các endpoint quản trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Giới hạn loại dữ liệu được phép giải tuần tự hóa theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2113,7 +2113,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Không nạp JAR hoặc artifact không tin cậy bằng deployer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2122,7 +2122,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Bảo vệ thông tin bí mật trong biến môi trường và kho cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Che dữ liệu JSON bằng JsonMasker và META-INF/mask.keys
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Giới hạn kích thước dữ liệu, thời gian xử lý và mức đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: security-011
     title: Quyền tối thiểu khi truy cập dịch vụ đám mây và broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
   childs:
   - slug: observability-001
     title: Liệt kê hàm bằng FunctionCatalog để chẩn đoán cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Actuator functions endpoint và điều kiện kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2179,7 +2179,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Phân biệt quan sát từng hàm với quan sát HTTP, binder và nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2188,7 +2188,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Đo thời lượng, số lần gọi và tỷ lệ lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2197,7 +2197,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Liên kết nhật ký theo mã lần gọi và mã thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2206,7 +2206,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Truyền ngữ cảnh truy vết qua hàm ghép và chuỗi phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Phân biệt thời gian khởi động và thời gian xử lý ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Giới hạn nhãn số liệu và tránh ghi dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: observability-009
     title: Thiết lập cảnh báo lỗi định tuyến, dữ liệu tồn đọng và quá thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2245,7 +2245,7 @@ menu:
   childs:
   - slug: performance-001
     title: Đo riêng thời gian khởi động và thời gian thực thi hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2254,7 +2254,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Giảm phụ thuộc và tự cấu hình không cần thiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2263,7 +2263,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Lựa chọn đăng ký bean truyền thống hoặc functional
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2272,7 +2272,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Tái sử dụng kết nối và đối tượng client an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2281,7 +2281,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Chi phí chuyển đổi JSON và sao chép Message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Lựa chọn xử lý đồng bộ hoặc phản ứng theo tải thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Điều chỉnh song song, bộ nhớ và số kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Đánh giá Spring AOT, RuntimeHints và GraalVM Native Image
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Kiểm tra tương thích adapter trước khi chọn kiểu triển khai tối ưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Phân biệt phiên bản Spring Cloud Function, Boot, BOM và runtime
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Đối chiếu API, thuộc tính cấu hình và thay đổi hành vi mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Kiểm tra chuyển đổi JSON và chính sách loại dữ liệu được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2356,7 +2356,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Kiểm tra web adapter, định tuyến và header sau nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Chuyển đổi handler serverless đã ngừng khuyến nghị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Giữ ổn định tên hàm, định nghĩa ghép và hợp đồng sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Đối chiếu tài liệu cũ với thế hệ dịch vụ đám mây hiện hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Kiểm thử hồi quy và kế hoạch khôi phục phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
   childs:
   - slug: diagnostics-001
     title: Không tìm thấy hàm trong FunctionCatalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: diagnostics-002
     title: Hàm ngoài ý muốn được đăng ký hoặc công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: diagnostics-003
     title: Tra cứu tên sai vẫn trả hàm khi bật cơ chế tra cứu dự phòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: diagnostics-004
     title: Chuyển đổi JSON thất bại hoặc nhận Map thay vì POJO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2440,7 +2440,7 @@ menu:
     summary: ''
   - slug: diagnostics-005
     title: Chữ ký generic bị mất sau đăng ký hoặc đóng gói
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
     summary: ''
   - slug: diagnostics-006
     title: Ghép hàm sai thứ tự hoặc không tương thích kiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: diagnostics-007
     title: Header định tuyến không có tác dụng với luồng phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: diagnostics-008
     title: Luồng Flux không được xử lý do thiếu đăng ký nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: diagnostics-009
     title: HTTP trả sai đường dẫn, method hoặc content type
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: diagnostics-010
     title: Header bị mất, bị sao chép ngoài ý muốn hoặc bổ sung thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: diagnostics-011
     title: Handler serverless không khởi tạo được lớp ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: diagnostics-012
     title: Nạp JAR lỗi do ClassLoader, manifest hoặc phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: diagnostics-013
     title: Thời gian khởi động dài, vượt timeout hoặc lặp tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
   childs:
   - slug: hands-on-practice-001
     title: Xây dựng bộ Supplier, Function và Consumer xử lý văn bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2533,7 +2533,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-002
     title: Chuyển JSON thành POJO với converter tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2542,7 +2542,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-003
     title: Ghép chuỗi kiểm tra và xử lý đơn hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2551,7 +2551,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-004
     title: Định tuyến theo header với danh sách hàm được phép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-005
     title: Bổ sung metadata và kiểm chứng quy tắc truyền header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-006
     title: Tách và kết hợp nhiều luồng bằng Reactor Tuple
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-007
     title: Công bố cùng một hàm qua HTTP và Spring Cloud Stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-008
     title: Dùng FunctionFlowBuilder trong luồng Spring Integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-009
     title: Nạp hàm từ JAR độc lập và kiểm tra ranh giới kiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-010
     title: Đưa nghiệp vụ lên một adapter serverless rồi đối chiếu kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-011
     title: Mô phỏng lỗi, dữ liệu lặp và nhiều lần gọi đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: hands-on-practice-012
     title: Đo khởi động, bảo vệ điểm vào và hoàn thiện kiểm thử triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: core-concepts-001
     title: Khái niệm Abstract Factory và mục tiêu tạo các họ đối tượng liên quan
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -13,7 +13,7 @@ menu:
     summary: ""
   - slug: core-concepts-002
     title: Ý nghĩa của việc tạo đối tượng qua interface thay vì phụ thuộc lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -22,7 +22,7 @@ menu:
     summary: ""
   - slug: core-concepts-003
     title: Vị trí của Abstract Factory trong nhóm mẫu thiết kế khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -31,7 +31,7 @@ menu:
     summary: ""
   - slug: core-concepts-004
     title: Lợi ích của việc tách logic nghiệp vụ khỏi quyết định chọn biến thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -40,7 +40,7 @@ menu:
     summary: ""
   - slug: core-concepts-005
     title: Điều kiện áp dụng khi ứng dụng cần nhiều họ sản phẩm tương thích
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -49,7 +49,7 @@ menu:
     summary: ""
   - slug: core-concepts-006
     title: Phạm vi bài học, kiến thức Java cần có và kết quả học tập mong đợi
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -61,7 +61,7 @@ menu:
   childs:
   - slug: problem-recognition-001
     title: Bài toán giao diện đa nền tảng với Button và Checkbox cùng phong cách
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -70,7 +70,7 @@ menu:
     summary: ""
   - slug: problem-recognition-002
     title: Sự lan rộng của new, tên lớp cụ thể và điều kiện if hoặc switch trong mã khách
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -79,7 +79,7 @@ menu:
     summary: ""
   - slug: problem-recognition-003
     title: Rủi ro khi khởi tạo và kết hợp sản phẩm thuộc các họ khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -88,7 +88,7 @@ menu:
     summary: ""
   - slug: problem-recognition-004
     title: Phân biệt nhu cầu tạo một đối tượng với nhu cầu tạo cả họ sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -97,7 +97,7 @@ menu:
     summary: ""
   - slug: problem-recognition-005
     title: Xác định các chiều biến thiên và phần hành vi cần giữ ổn định
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -106,7 +106,7 @@ menu:
     summary: ""
   - slug: problem-recognition-006
     title: Tiêu chí chọn Abstract Factory và trường hợp một factory đơn giản đã đủ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -118,7 +118,7 @@ menu:
   childs:
   - slug: product-families-001
     title: Phân biệt loại sản phẩm, biến thể sản phẩm và họ sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -127,7 +127,7 @@ menu:
     summary: ""
   - slug: product-families-002
     title: Lập ma trận loại sản phẩm và biến thể để xác định phạm vi factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -136,7 +136,7 @@ menu:
     summary: ""
   - slug: product-families-003
     title: Định nghĩa tính tương thích về giao thức, dữ liệu và quy tắc nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -145,7 +145,7 @@ menu:
     summary: ""
   - slug: product-families-004
     title: Phân biệt tương thích về kiểu dữ liệu với tương thích về ngữ nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -154,7 +154,7 @@ menu:
     summary: ""
   - slug: product-families-005
     title: Xác định sản phẩm bắt buộc, tùy chọn và tổ hợp không được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -163,7 +163,7 @@ menu:
     summary: ""
   - slug: product-families-006
     title: Giữ ranh giới họ sản phẩm đủ gắn kết để tránh factory ôm nhiều trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -172,7 +172,7 @@ menu:
     summary: ""
   - slug: product-families-007
     title: Mô tả bất biến mà mọi sản phẩm trong cùng một họ phải tuân thủ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -184,7 +184,7 @@ menu:
   childs:
   - slug: structure-and-collaboration-001
     title: Vai trò AbstractFactory trong việc công bố các phương thức tạo sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -193,7 +193,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-002
     title: Vai trò ConcreteFactory trong việc hiện thực một họ sản phẩm cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -202,7 +202,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-003
     title: Vai trò AbstractProduct trong việc định nghĩa hợp đồng của từng loại sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -211,7 +211,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-004
     title: Vai trò ConcreteProduct trong việc cung cấp hành vi cho từng biến thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -220,7 +220,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-005
     title: Vai trò Client khi chỉ làm việc với factory và product qua abstraction
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -229,7 +229,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-006
     title: Sơ đồ lớp UML và quan hệ phụ thuộc giữa factory, product và client
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -238,7 +238,7 @@ menu:
     summary: ""
   - slug: structure-and-collaboration-007
     title: Sơ đồ tuần tự từ chọn factory đến tạo và phối hợp các sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -250,7 +250,7 @@ menu:
   childs:
   - slug: interface-design-001
     title: Thiết kế interface riêng cho từng loại sản phẩm theo hành vi người dùng cần
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -259,7 +259,7 @@ menu:
     summary: ""
   - slug: interface-design-002
     title: Thiết kế factory interface với kiểu trả về là product interface
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -268,7 +268,7 @@ menu:
     summary: ""
   - slug: interface-design-003
     title: Đặt tên phương thức tạo thể hiện rõ sản phẩm và ý nghĩa sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -277,7 +277,7 @@ menu:
     summary: ""
   - slug: interface-design-004
     title: Truyền cấu hình chung và tham số riêng mà không làm lộ lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -286,7 +286,7 @@ menu:
     summary: ""
   - slug: interface-design-005
     title: Thiết kế hợp đồng lỗi khi tham số không hợp lệ hoặc sản phẩm không được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -295,7 +295,7 @@ menu:
     summary: ""
   - slug: interface-design-006
     title: Cân nhắc generic và kiểu đánh dấu họ sản phẩm khi cần ràng buộc tương thích
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -304,7 +304,7 @@ menu:
     summary: ""
   - slug: interface-design-007
     title: Áp dụng DIP, OCP và ISP vào ranh giới giữa client, factory và product
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -316,7 +316,7 @@ menu:
   childs:
   - slug: creation-flow-001
     title: Tách bước chọn họ sản phẩm khỏi bước tạo đối tượng và sử dụng hành vi
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -325,7 +325,7 @@ menu:
     summary: ""
   - slug: creation-flow-002
     title: Tổ chức composition root làm nơi duy nhất lắp ráp các lớp triển khai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -334,7 +334,7 @@ menu:
     summary: ""
   - slug: creation-flow-003
     title: Truyền AbstractFactory vào client qua constructor injection
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -343,7 +343,7 @@ menu:
     summary: ""
   - slug: creation-flow-004
     title: Theo dõi luồng gọi từ client đến ConcreteFactory và ConcreteProduct
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -352,7 +352,7 @@ menu:
     summary: ""
   - slug: creation-flow-005
     title: Xác định nơi còn phụ thuộc lớp cụ thể sau khi áp dụng mẫu thiết kế
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -361,7 +361,7 @@ menu:
     summary: ""
   - slug: creation-flow-006
     title: Phân biệt trách nhiệm tạo sản phẩm với trách nhiệm điều phối nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -373,7 +373,7 @@ menu:
   childs:
   - slug: java-implementation-001
     title: Xây dựng ví dụ xuyên suốt với GUIFactory, Button và Checkbox
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -382,7 +382,7 @@ menu:
     summary: ""
   - slug: java-implementation-002
     title: Khai báo interface Button và Checkbox bằng các thao tác phù hợp miền giao diện
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -391,7 +391,7 @@ menu:
     summary: ""
   - slug: java-implementation-003
     title: Khai báo GUIFactory với createButton và createCheckbox
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -400,7 +400,7 @@ menu:
     summary: ""
   - slug: java-implementation-004
     title: Hiện thực họ LightButton và LightCheckbox cùng LightGUIFactory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -409,7 +409,7 @@ menu:
     summary: ""
   - slug: java-implementation-005
     title: Hiện thực họ DarkButton và DarkCheckbox cùng DarkGUIFactory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -418,7 +418,7 @@ menu:
     summary: ""
   - slug: java-implementation-006
     title: Xây dựng Application nhận GUIFactory và phối hợp các sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -427,7 +427,7 @@ menu:
     summary: ""
   - slug: java-implementation-007
     title: Lắp ráp chương trình trong main và chạy lần lượt hai họ sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -436,7 +436,7 @@ menu:
     summary: ""
   - slug: java-implementation-008
     title: Tổ chức package, phạm vi truy cập và constructor để hạn chế phụ thuộc sai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -445,7 +445,7 @@ menu:
     summary: ""
   - slug: java-implementation-009
     title: Đọc kết quả chạy và đối chiếu mã Java với các vai trò trong sơ đồ UML
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -457,7 +457,7 @@ menu:
   childs:
   - slug: variant-selection-001
     title: Chọn factory từ tham số dòng lệnh, tệp cấu hình hoặc biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -466,7 +466,7 @@ menu:
     summary: ""
   - slug: variant-selection-002
     title: Tập trung ánh xạ cấu hình sang ConcreteFactory tại điểm lắp ráp
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -475,7 +475,7 @@ menu:
     summary: ""
   - slug: variant-selection-003
     title: Dùng enum và registry khi cần quản lý danh sách biến thể được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -484,7 +484,7 @@ menu:
     summary: ""
   - slug: variant-selection-004
     title: Phát hiện cấu hình sai và quyết định báo lỗi hoặc dùng biến thể mặc định
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -493,7 +493,7 @@ menu:
     summary: ""
   - slug: variant-selection-005
     title: Phân biệt đổi biến thể khi khởi động với đổi biến thể trong lúc chạy
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -502,7 +502,7 @@ menu:
     summary: ""
   - slug: variant-selection-006
     title: Đổi factory có kiểm soát và tái tạo các sản phẩm đang phụ thuộc họ cũ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -511,7 +511,7 @@ menu:
     summary: ""
   - slug: variant-selection-007
     title: Giới hạn phạm vi factory theo ứng dụng, yêu cầu hoặc tenant để tránh dùng nhầm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -523,7 +523,7 @@ menu:
   childs:
   - slug: compatibility-guarantees-001
     title: Duy trì một factory nhất quán cho các sản phẩm cần cộng tác
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -532,7 +532,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-002
     title: Nhận diện các đường khởi tạo có thể đưa sản phẩm khác họ vào client
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -541,7 +541,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-003
     title: Giới hạn API và constructor để giảm khả năng trộn họ ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -550,7 +550,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-004
     title: Dùng generic hoặc family token khi kiểm tra kiểu thông thường chưa đủ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -559,7 +559,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-005
     title: Kiểm tra tương thích lúc chạy khi cấu hình động hoặc plugin không bảo đảm được lúc biên dịch
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -568,7 +568,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-006
     title: Thiết kế sản phẩm cộng tác qua hợp đồng chung thay vì ép kiểu sang lớp cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -577,7 +577,7 @@ menu:
     summary: ""
   - slug: compatibility-guarantees-007
     title: Phân tích giới hạn của Abstract Factory khi client vẫn có thể lấy sản phẩm từ nguồn khác
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -589,7 +589,7 @@ menu:
   childs:
   - slug: lifecycle-and-resources-001
     title: Phân biệt tạo mới, dùng lại và cache sản phẩm trong cùng một factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -598,7 +598,7 @@ menu:
     summary: ""
   - slug: lifecycle-and-resources-002
     title: Xác định quyền sở hữu và nơi chịu trách nhiệm đóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -607,7 +607,7 @@ menu:
     summary: ""
   - slug: lifecycle-and-resources-003
     title: Kết hợp AutoCloseable và try-with-resources với sản phẩm quản lý tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -616,7 +616,7 @@ menu:
     summary: ""
   - slug: lifecycle-and-resources-004
     title: Xử lý thất bại khi chỉ một phần các sản phẩm trong họ được tạo thành công
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -625,7 +625,7 @@ menu:
     summary: ""
   - slug: lifecycle-and-resources-005
     title: Đánh giá tính an toàn luồng của factory không trạng thái và factory có cache
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -634,7 +634,7 @@ menu:
     summary: ""
   - slug: lifecycle-and-resources-006
     title: Phân biệt Abstract Factory với Singleton và tránh mặc định chia sẻ mọi sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -646,7 +646,7 @@ menu:
   childs:
   - slug: testing-product-families-001
     title: Lập ma trận kiểm thử theo họ sản phẩm, loại sản phẩm và tình huống cộng tác
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -655,7 +655,7 @@ menu:
     summary: ""
   - slug: testing-product-families-002
     title: Viết unit test bằng JUnit cho từng ConcreteFactory và hợp đồng trả về
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -664,7 +664,7 @@ menu:
     summary: ""
   - slug: testing-product-families-003
     title: Dùng bộ contract test chung để kiểm tra mọi họ thực hiện đúng product interface
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -673,7 +673,7 @@ menu:
     summary: ""
   - slug: testing-product-families-004
     title: Viết kiểm thử tham số hóa để chạy cùng hành vi client với nhiều factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -682,7 +682,7 @@ menu:
     summary: ""
   - slug: testing-product-families-005
     title: Kiểm thử tích hợp cho các cặp sản phẩm cần tương thích về ngữ nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -691,7 +691,7 @@ menu:
     summary: ""
   - slug: testing-product-families-006
     title: Dùng fake factory và fake product để kiểm thử client độc lập với hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -700,7 +700,7 @@ menu:
     summary: ""
   - slug: testing-product-families-007
     title: Kiểm thử chọn biến thể, cấu hình sai và sản phẩm không được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -709,7 +709,7 @@ menu:
     summary: ""
   - slug: testing-product-families-008
     title: Kiểm thử đổi biến thể và bảo đảm sản phẩm cũ không bị kết hợp với họ mới
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -718,7 +718,7 @@ menu:
     summary: ""
   - slug: testing-product-families-009
     title: Tránh khẳng định quá chặt tên lớp cụ thể và bổ sung kiểm thử hồi quy khi thêm họ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -730,7 +730,7 @@ menu:
   childs:
   - slug: adding-product-families-001
     title: Thêm họ HighContrast vào ma trận sản phẩm của ví dụ Java
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -739,7 +739,7 @@ menu:
     summary: ""
   - slug: adding-product-families-002
     title: Hiện thực đầy đủ các ConcreteProduct và ConcreteFactory của họ mới
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -748,7 +748,7 @@ menu:
     summary: ""
   - slug: adding-product-families-003
     title: Đăng ký factory mới trong cấu hình hoặc cơ chế khám phá biến thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -757,7 +757,7 @@ menu:
     summary: ""
   - slug: adding-product-families-004
     title: Xác minh client tiếp tục hoạt động qua các interface hiện có
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -766,7 +766,7 @@ menu:
     summary: ""
   - slug: adding-product-families-005
     title: Tái sử dụng contract test và mở rộng kiểm thử tương thích cho họ mới
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -775,7 +775,7 @@ menu:
     summary: ""
   - slug: adding-product-families-006
     title: Đánh giá những điểm vẫn phải thay đổi tại composition root và cấu hình triển khai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -787,7 +787,7 @@ menu:
   childs:
   - slug: adding-product-types-001
     title: Thêm Slider vào ví dụ để quan sát sự thay đổi theo chiều loại sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -796,7 +796,7 @@ menu:
     summary: ""
   - slug: adding-product-types-002
     title: Bổ sung product interface và phương thức tạo trong AbstractFactory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -805,7 +805,7 @@ menu:
     summary: ""
   - slug: adding-product-types-003
     title: Cập nhật mọi ConcreteFactory và từng họ sản phẩm đang hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -814,7 +814,7 @@ menu:
     summary: ""
   - slug: adding-product-types-004
     title: Phân tích ảnh hưởng tới mã nguồn, hợp đồng API và các bên triển khai factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -823,7 +823,7 @@ menu:
     summary: ""
   - slug: adding-product-types-005
     title: Cân nhắc tách factory theo năng lực khi một số họ không hỗ trợ sản phẩm mới
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -832,7 +832,7 @@ menu:
     summary: ""
   - slug: adding-product-types-006
     title: So sánh chi phí thêm loại sản phẩm với chi phí thêm họ sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -844,7 +844,7 @@ menu:
   childs:
   - slug: refactoring-to-factories-001
     title: Nhận diện điểm khởi tạo trùng lặp và điều kiện chọn biến thể trong mã Java hiện hữu
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -853,7 +853,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-002
     title: Viết kiểm thử mô tả hành vi trước khi thay đổi cấu trúc tạo đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -862,7 +862,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-003
     title: Trích xuất product interface từ các lớp cụ thể đang được sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -871,7 +871,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-004
     title: Gom các thao tác tạo cùng họ vào ConcreteFactory rồi trích xuất AbstractFactory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -880,7 +880,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-005
     title: Thay phụ thuộc lớp cụ thể bằng constructor injection trong client
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -889,7 +889,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-006
     title: Di chuyển quyết định chọn họ về composition root theo từng bước nhỏ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -898,7 +898,7 @@ menu:
     summary: ""
   - slug: refactoring-to-factories-007
     title: So sánh hành vi trước và sau tái cấu trúc bằng kiểm thử hồi quy
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -910,7 +910,7 @@ menu:
   childs:
   - slug: architecture-integration-001
     title: Đặt interface và lớp triển khai trong cấu trúc package có hướng phụ thuộc rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -919,7 +919,7 @@ menu:
     summary: ""
   - slug: architecture-integration-002
     title: Kết hợp Abstract Factory với dependency injection container khi ứng dụng đã sử dụng container
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -928,7 +928,7 @@ menu:
     summary: ""
   - slug: architecture-integration-003
     title: Phân biệt factory nghiệp vụ với chức năng khởi tạo và quản lý bean của container
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -937,7 +937,7 @@ menu:
     summary: ""
   - slug: architecture-integration-004
     title: Dùng factory tại ranh giới hạ tầng trong kiến trúc phân lớp hoặc ports and adapters
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -946,7 +946,7 @@ menu:
     summary: ""
   - slug: architecture-integration-005
     title: Khám phá ConcreteFactory qua Java ServiceLoader cho kiến trúc plugin
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -955,7 +955,7 @@ menu:
     summary: ""
   - slug: architecture-integration-006
     title: Truyền cấu hình và dependency dùng chung mà không biến factory thành Service Locator
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -964,7 +964,7 @@ menu:
     summary: ""
   - slug: architecture-integration-007
     title: Theo dõi lỗi và thông tin biến thể tại điểm tạo sản phẩm để hỗ trợ vận hành
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -976,7 +976,7 @@ menu:
   childs:
   - slug: application-scenarios-001
     title: Bộ thành phần giao diện cùng theme hoặc cùng nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -985,7 +985,7 @@ menu:
     summary: ""
   - slug: application-scenarios-002
     title: Bộ render văn bản, bảng và biểu đồ cho các định dạng tài liệu khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -994,7 +994,7 @@ menu:
     summary: ""
   - slug: application-scenarios-003
     title: Bộ client lưu trữ, hàng đợi và thông báo theo từng nhà cung cấp hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1003,7 +1003,7 @@ menu:
     summary: ""
   - slug: application-scenarios-004
     title: Bộ parser, validator và serializer dùng chung phiên bản định dạng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1012,7 +1012,7 @@ menu:
     summary: ""
   - slug: application-scenarios-005
     title: Bộ adapter môi trường thật và môi trường mô phỏng phục vụ kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1021,7 +1021,7 @@ menu:
     summary: ""
   - slug: application-scenarios-006
     title: Đánh giá độ gắn kết và khác biệt năng lực trước khi gom các dịch vụ vào một họ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1033,7 +1033,7 @@ menu:
   childs:
   - slug: design-pattern-comparison-001
     title: Abstract Factory và Factory Method về mục tiêu, cấu trúc và phạm vi tạo đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1042,7 +1042,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-002
     title: Abstract Factory và Simple Factory khi cần chọn một lớp từ một nhóm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1051,7 +1051,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-003
     title: Abstract Factory và Builder khi cần tạo họ sản phẩm hoặc lắp ráp một đối tượng phức tạp
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1060,7 +1060,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-004
     title: Abstract Factory và Prototype khi sản phẩm được tạo bằng sao chép mẫu
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1069,7 +1069,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-005
     title: Abstract Factory và Strategy khi thay cách tạo đối tượng hoặc thay thuật toán
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1078,7 +1078,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-006
     title: Abstract Factory và Bridge khi tách các chiều biến thiên của abstraction và implementation
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1087,7 +1087,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-007
     title: Kết hợp Factory Method hoặc Prototype bên trong một ConcreteFactory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1096,7 +1096,7 @@ menu:
     summary: ""
   - slug: design-pattern-comparison-008
     title: Bảng tiêu chí lựa chọn dựa trên số họ, số loại sản phẩm và hướng mở rộng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1108,7 +1108,7 @@ menu:
   childs:
   - slug: costs-and-trade-offs-001
     title: Đánh giá lợi ích về tính nhất quán, khả năng thay thế và cô lập phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1117,7 +1117,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-002
     title: Ước lượng số interface, lớp và factory tăng theo ma trận sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1126,7 +1126,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-003
     title: Phân tích độ phức tạp do thêm lớp gián tiếp và chi phí đọc hiểu luồng khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1135,7 +1135,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-004
     title: Đánh giá chi phí bảo trì khi các họ sản phẩm phát triển không đồng đều
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1144,7 +1144,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-005
     title: Cân nhắc tính ổn định của product interface trước khi công khai API
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1153,7 +1153,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-006
     title: Đo chi phí khởi tạo và cấp phát khi có vấn đề hiệu năng thực tế
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1162,7 +1162,7 @@ menu:
     summary: ""
   - slug: costs-and-trade-offs-007
     title: Chọn giải pháp đơn giản hơn khi chưa có nhu cầu về họ sản phẩm
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1174,7 +1174,7 @@ menu:
   childs:
   - slug: common-pitfalls-001
     title: Factory trả về lớp cụ thể khiến client tiếp tục phụ thuộc chi tiết triển khai
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1183,7 +1183,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-002
     title: Client tự new sản phẩm hoặc trộn sản phẩm từ nhiều factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1192,7 +1192,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-003
     title: Lặp lại if hoặc switch chọn biến thể trong từng phương thức nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1201,7 +1201,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-004
     title: Dùng một factory khổng lồ cho các sản phẩm không có quan hệ tương thích
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1210,7 +1210,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-005
     title: Nhầm Abstract Factory với một lớp gom các phương thức static tạo đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1219,7 +1219,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-006
     title: Trả về null hoặc ném UnsupportedOperationException để che lấp hợp đồng không phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1228,7 +1228,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-007
     title: Ép kiểu, dùng instanceof hoặc truy vấn tên lớp để chọn hành vi trong client
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1237,7 +1237,7 @@ menu:
     summary: ""
   - slug: common-pitfalls-008
     title: Đổi factory nhưng giữ sản phẩm cũ, cache sai phạm vi hoặc bỏ sót đóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1249,7 +1249,7 @@ menu:
   childs:
   - slug: practice-exercises-001
     title: Phân tích một đề bài và lập ma trận họ sản phẩm trước khi thiết kế lớp
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1258,7 +1258,7 @@ menu:
     summary: ""
   - slug: practice-exercises-002
     title: Vẽ sơ đồ UML và hiện thực ví dụ Light và Dark bằng Java
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1267,7 +1267,7 @@ menu:
     summary: ""
   - slug: practice-exercises-003
     title: Thêm họ HighContrast và ghi lại số điểm cần sửa trong chương trình
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1276,7 +1276,7 @@ menu:
     summary: ""
   - slug: practice-exercises-004
     title: Thêm Slider vào mọi họ và so sánh tác động với việc thêm biến thể
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1285,7 +1285,7 @@ menu:
     summary: ""
   - slug: practice-exercises-005
     title: Tạo lỗi trộn họ có chủ đích rồi bổ sung cơ chế phát hiện và kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1294,7 +1294,7 @@ menu:
     summary: ""
   - slug: practice-exercises-006
     title: Tái cấu trúc chương trình chứa nhiều nhánh khởi tạo sang Abstract Factory
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1303,7 +1303,7 @@ menu:
     summary: ""
   - slug: practice-exercises-007
     title: Xây dựng một tình huống ứng dụng khác và giải thích lựa chọn cùng phương án thay thế
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1315,7 +1315,7 @@ menu:
   childs:
   - slug: design-evaluation-001
     title: Kiểm tra khả năng giải thích đúng vai trò factory, product và client
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1324,7 +1324,7 @@ menu:
     summary: ""
   - slug: design-evaluation-002
     title: Kiểm tra client chỉ phụ thuộc abstraction ở các ranh giới đã xác định
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1333,7 +1333,7 @@ menu:
     summary: ""
   - slug: design-evaluation-003
     title: Kiểm tra mỗi họ đáp ứng đầy đủ hợp đồng và quy tắc tương thích
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1342,7 +1342,7 @@ menu:
     summary: ""
   - slug: design-evaluation-004
     title: Chứng minh đổi biến thể bằng cấu hình và kiểm thử mà không sửa logic nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1351,7 +1351,7 @@ menu:
     summary: ""
   - slug: design-evaluation-005
     title: Đánh giá chất lượng mã Java, kiểm thử và xử lý lỗi trong bài thực hành
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""
@@ -1360,7 +1360,7 @@ menu:
     summary: ""
   - slug: design-evaluation-006
     title: Tổng hợp quyết định thiết kế, chi phí mở rộng và hướng bảo trì phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ""
     focus: ""
     problemSolved: ""

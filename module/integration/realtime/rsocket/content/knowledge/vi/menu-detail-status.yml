@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: RSocket là gì và vai trò trong tích hợp thời gian thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vì sao cần giao tiếp bất đồng bộ và truyền dữ liệu liên tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Phân biệt giao thức RSocket, thư viện RSocket Java và hỗ trợ của Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Quan hệ giữa kết nối, luồng tương tác (stream), thông điệp và payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt bên mở kết nối với bên gửi yêu cầu và bên xử lý yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Bốn mô hình tương tác và cách chọn theo nhu cầu trao đổi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: So sánh RSocket với HTTP, WebSocket thuần, SSE và gRPC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Phạm vi sử dụng, giới hạn và kiến thức cần có trước khi thực hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: reactive-foundations-001
     title: Lập trình phản ứng và mô hình truyền tín hiệu Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-002
     title: Vai trò của Publisher, Subscriber, Subscription và Processor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-003
     title: Tín hiệu onSubscribe, onNext, onError và onComplete
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-004
     title: 'Mono và Flux: số lượng phần tử, kết quả rỗng và lỗi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-005
     title: Đăng ký nhận dữ liệu (subscription) và thời điểm thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-006
     title: Nguồn phát theo từng đăng ký và nguồn phát dùng chung (cold/hot)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-007
     title: Bất đồng bộ, không chặn và luồng xử lý của Reactor Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-008
     title: Quan hệ giữa nhu cầu nhận (demand), bộ đệm và tốc độ xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: reactive-foundations-009
     title: Các toán tử Reactor cần dùng khi xây dựng ứng dụng RSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
   childs:
   - slug: connections-and-transports-001
     title: TCP và WebSocket trong kiến trúc truyền tải RSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-002
     title: Ranh giới giữa giao thức ứng dụng và cơ chế truyền tải bên dưới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-003
     title: Cấu hình địa chỉ, cổng và đường dẫn WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-004
     title: Trình duyệt kết nối RSocket qua WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-005
     title: Giao tiếp hai chiều trên cùng một kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-006
     title: Ghép nhiều luồng tương tác (multiplexing) và định danh từng luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-007
     title: Thứ tự thông điệp trong từng luồng và giới hạn giữa các luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-008
     title: Ảnh hưởng của TCP head-of-line blocking đến các luồng dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: connections-and-transports-009
     title: Vòng đời kết nối, trạng thái sẵn sàng và đóng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
   childs:
   - slug: protocol-and-frames-001
     title: 'Cấu trúc frame: độ dài, Stream ID, loại và cờ điều khiển'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-002
     title: Stream ID bằng 0 và quy tắc định danh luồng do hai phía khởi tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-003
     title: Nhóm frame thiết lập và quản lý kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-004
     title: Nhóm frame khởi tạo bốn mô hình tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-005
     title: PAYLOAD và các cờ NEXT, COMPLETE, FOLLOWS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-006
     title: REQUEST_N và CANCEL trong điều khiển luồng tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-007
     title: ERROR và phạm vi lỗi của kết nối hoặc một luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-008
     title: METADATA_PUSH và metadata ở phạm vi kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-009
     title: Khác biệt đóng khung trên TCP và WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -328,7 +328,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-010
     title: Frame EXT, cờ IGNORE và cách xử lý phần mở rộng chưa hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -337,7 +337,7 @@ menu:
     summary: ''
   - slug: protocol-and-frames-011
     title: Đọc sơ đồ trình tự frame để hiểu một lần trao đổi RSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
   childs:
   - slug: payloads-and-metadata-001
     title: Cấu trúc payload và vai trò riêng của data, metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-002
     title: Khai báo MIME type cho data và metadata trong SETUP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-003
     title: Mã hóa dữ liệu bằng JSON, CBOR, Protobuf hoặc định dạng tùy chỉnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-004
     title: Metadata định tuyến (routing metadata) và tên tuyến xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-005
     title: Composite metadata và nhiều loại metadata trong cùng payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-006
     title: WellKnownMimeType và định danh kiểu metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-007
     title: Metadata xác thực, truy vết và thông tin ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-008
     title: Phân biệt metadata của kết nối với metadata từng yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -421,7 +421,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-009
     title: Thiết kế DTO, giới hạn kích thước và kiểm tra dữ liệu đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -430,7 +430,7 @@ menu:
     summary: ''
   - slug: payloads-and-metadata-010
     title: Tương thích schema, trường tùy chọn và nâng phiên bản hợp đồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
   childs:
   - slug: session-setup-001
     title: Trình tự mở kết nối và gửi frame SETUP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: session-setup-002
     title: Phiên bản giao thức và xử lý thiết lập không tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: session-setup-003
     title: Setup data và setup metadata dùng để trao đổi thông tin ban đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: session-setup-004
     title: Khoảng gửi KEEPALIVE và thời gian sống tối đa của kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: session-setup-005
     title: Phân biệt keepalive giao thức với TCP keepalive và timeout nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: session-setup-006
     title: Đăng ký dùng leasing và resumption trong bước thiết lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: session-setup-007
     title: Từ chối SETUP, kiểm tra quyền kết nối và giải phóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: session-setup-008
     title: Thời điểm cho phép gửi yêu cầu sau khi thiết lập kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: session-setup-009
     title: Quản lý thông tin phiên và tài nguyên gắn với kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
   childs:
   - slug: request-response-001
     title: 'Mô hình request-response: một yêu cầu và tối đa một phản hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: request-response-002
     title: Trình tự REQUEST_RESPONSE, PAYLOAD, COMPLETE và ERROR
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: request-response-003
     title: Biểu diễn phản hồi có dữ liệu, hoàn thành rỗng và thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: request-response-004
     title: Thiết kế thao tác truy vấn hoặc lệnh cần xác nhận kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: request-response-005
     title: Thời hạn chờ phản hồi và hủy yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: request-response-006
     title: Thử lại khi mất phản hồi và nguy cơ thực thi lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: request-response-007
     title: Thực hành truy vấn trạng thái đơn hàng bằng request-response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
   childs:
   - slug: fire-and-forget-001
     title: Mô hình fire-and-forget và trình tự REQUEST_FNF
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-002
     title: Ý nghĩa hoàn tất gửi ở phía gọi và giới hạn xác nhận nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-003
     title: 'Các trường hợp phù hợp: tín hiệu đo lường và thông báo không cần phản hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-004
     title: Quan sát lỗi gửi, lỗi kết nối và lỗi xử lý phía nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-005
     title: Thiết kế xác nhận ở tầng ứng dụng khi cần biết kết quả xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-006
     title: Kiểm soát tốc độ gửi khi mô hình không có luồng phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: fire-and-forget-007
     title: Thực hành gửi dữ liệu cảm biến và xác minh việc tiếp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
   childs:
   - slug: request-stream-001
     title: 'Mô hình request-stream: một yêu cầu và nhiều phần tử phản hồi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: request-stream-002
     title: Luồng hữu hạn, luồng liên tục và điều kiện hoàn thành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: request-stream-003
     title: Trình tự REQUEST_STREAM, PAYLOAD và REQUEST_N
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: request-stream-004
     title: Lọc, chuyển đổi và giới hạn dữ liệu trước khi truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: request-stream-005
     title: Hủy đăng ký từ phía nhận và dừng nguồn phát ở phía gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: request-stream-006
     title: Xử lý bên nhận chậm, gián đoạn và lỗi giữa luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: request-stream-007
     title: Phân biệt đăng ký mới với tiếp tục một luồng đang tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: request-stream-008
     title: Thực hành theo dõi giá hoặc trạng thái thay đổi theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
   childs:
   - slug: request-channel-001
     title: Mô hình request-channel và hai luồng dữ liệu độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: request-channel-002
     title: Vai trò của payload đầu tiên trong khởi tạo kênh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: request-channel-003
     title: Trình tự REQUEST_CHANNEL và các PAYLOAD tiếp theo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: request-channel-004
     title: Nhu cầu nhận và điều tiết dữ liệu theo từng chiều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: request-channel-005
     title: Hoàn thành một chiều trong khi chiều còn lại tiếp tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: request-channel-006
     title: Phạm vi tác động của lỗi và hủy đối với kênh hai chiều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
     summary: ''
   - slug: request-channel-007
     title: Phối hợp luồng lệnh đầu vào với luồng kết quả đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: request-channel-008
     title: Quản lý trạng thái và tài nguyên trong một kênh dài hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: request-channel-009
     title: Thực hành hội thoại hoặc điều khiển thiết bị theo thời gian thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
   childs:
   - slug: flow-control-001
     title: Điều tiết theo nhu cầu (backpressure) và vấn đề bên nhận chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: flow-control-002
     title: Phân biệt nhu cầu theo số phần tử với giới hạn băng thông theo byte
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: flow-control-003
     title: Nhu cầu ban đầu và bổ sung nhu cầu bằng REQUEST_N
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: flow-control-004
     title: Theo dõi số phần tử được phép phát và trường hợp nhu cầu lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: flow-control-005
     title: Điều tiết hai chiều trong request-channel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: flow-control-006
     title: Ảnh hưởng của prefetch, limitRate, publishOn và flatMap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: flow-control-007
     title: 'Xử lý nguồn không tuân theo nhu cầu: đệm, bỏ bớt hoặc giữ giá trị mới nhất'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: flow-control-008
     title: Giới hạn bộ đệm và chính sách khi vượt khả năng tiếp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: flow-control-009
     title: Truyền nhu cầu xuyên qua các tầng dịch vụ và nguồn dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: flow-control-010
     title: Thực nghiệm bên nhận chậm để quan sát nhu cầu và mức sử dụng bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
   childs:
   - slug: request-quotas-001
     title: Leasing và mục đích giới hạn số yêu cầu mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: request-quotas-002
     title: Phân biệt hạn ngạch yêu cầu với backpressure của luồng đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: request-quotas-003
     title: 'Cấu trúc LEASE: thời hạn hiệu lực, số yêu cầu và metadata'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: request-quotas-004
     title: Quy trình cấp, gia hạn và sử dụng hạn ngạch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: request-quotas-005
     title: Hành vi khi hết hạn ngạch hoặc lease hết hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: request-quotas-006
     title: Giới hạn phạm vi bảo vệ của leasing trên từng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: request-quotas-007
     title: Kết hợp leasing với giới hạn đồng thời và kiểm soát tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: request-quotas-008
     title: Thực nghiệm dịch vụ quá tải với và không có leasing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
   childs:
   - slug: lifecycle-and-errors-001
     title: Vòng đời một luồng từ lúc khởi tạo đến khi kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -994,7 +994,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-002
     title: Phân biệt hoàn thành, hủy, lỗi ứng dụng và mất kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-003
     title: Phân loại lỗi thiết lập, lỗi kết nối và lỗi cấp luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-004
     title: 'Các mã lỗi tiêu biểu: APPLICATION_ERROR, REJECTED, CANCELED, INVALID'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-005
     title: Chuyển lỗi nghiệp vụ thành phản hồi hoặc tín hiệu lỗi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-006
     title: Phân biệt kết quả rỗng với tài nguyên không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-007
     title: Truyền tín hiệu hủy xuống nguồn dữ liệu và tác vụ nền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-008
     title: Dọn dẹp tài nguyên khi hoàn thành, lỗi hoặc hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: lifecycle-and-errors-009
     title: Thiết kế thông báo lỗi đủ chẩn đoán và tránh lộ dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1069,7 +1069,7 @@ menu:
   childs:
   - slug: connection-resumption-001
     title: Phân biệt reconnect, retry, resubscribe và resume
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
     summary: ''
   - slug: connection-resumption-002
     title: Thử kết nối lại với backoff, jitter và số lần thử hữu hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: connection-resumption-003
     title: 'Resumption: resume token và trạng thái cần giữ ở hai phía'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: connection-resumption-004
     title: Vị trí frame, bộ đệm lưu lại và cơ chế tiếp tục phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: connection-resumption-005
     title: Trình tự RESUME, RESUME_OK và đồng bộ vị trí frame đã tiếp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: connection-resumption-006
     title: Điều kiện resume thành công và trường hợp REJECTED_RESUME
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: connection-resumption-007
     title: Giới hạn dung lượng bộ đệm và thời gian giữ phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: connection-resumption-008
     title: Ảnh hưởng của khởi động lại máy chủ đến khả năng resume
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: connection-resumption-009
     title: Tránh lặp tác dụng phụ khi phục hồi yêu cầu đang dang dở
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: connection-resumption-010
     title: Xử lý nhiều phía kết nối lại đồng thời sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: connection-resumption-011
     title: Thực nghiệm ngắt mạng, resume thành công và chuyển sang phiên mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
   childs:
   - slug: payload-fragmentation-001
     title: Phân biệt phân mảnh RSocket với chia gói của TCP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-002
     title: Phân mảnh payload và vai trò của cờ FOLLOWS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-003
     title: Tái lắp ghép data, metadata và ranh giới thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-004
     title: Cấu hình kích thước mảnh và giới hạn payload được chấp nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-005
     title: Chi phí bộ nhớ, độ trễ và bảo vệ trước payload quá lớn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-006
     title: Lựa chọn giữa một payload lớn và một luồng nhiều phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: payload-fragmentation-007
     title: Thực hành truyền payload lớn và quan sát các frame
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1237,7 +1237,7 @@ menu:
   childs:
   - slug: rsocket-java-001
     title: Các thành phần rsocket-core, rsocket-transport-netty và rsocket-test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
     summary: ''
   - slug: rsocket-java-002
     title: Hợp đồng io.rsocket.RSocket và bốn phương thức tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
     summary: ''
   - slug: rsocket-java-003
     title: Tạo máy chủ bằng RSocketServer và SocketAcceptor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: rsocket-java-004
     title: Tạo phía kết nối bằng RSocketConnector
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1273,7 +1273,7 @@ menu:
     summary: ''
   - slug: rsocket-java-005
     title: TcpClientTransport, TcpServerTransport và truyền tải WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
     summary: ''
   - slug: rsocket-java-006
     title: Tạo và đọc Payload bằng DefaultPayload hoặc ByteBufPayload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: rsocket-java-007
     title: Cài đặt phía xử lý cho requestResponse, fireAndForget, requestStream, requestChannel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: rsocket-java-008
     title: Cung cấp responder phía mở kết nối để nhận yêu cầu ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: rsocket-java-009
     title: Gửi metadata phạm vi kết nối bằng metadataPush
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: rsocket-java-010
     title: Cấu hình connector, server và interceptor cho hành vi giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
     summary: ''
   - slug: rsocket-java-011
     title: Quản lý dispose, onClose và đóng ứng dụng đúng cách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
   childs:
   - slug: memory-and-resources-001
     title: Bộ nhớ heap, bộ nhớ trực tiếp và ByteBuf của Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-002
     title: Đếm tham chiếu và quyền sở hữu Payload qua từng lời gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-003
     title: Quy tắc retain, release và thời điểm không còn được truy cập payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-004
     title: PayloadDecoder và đánh đổi giữa sao chép với zero-copy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-005
     title: Giải phóng payload khi lỗi, hủy hoặc loại bỏ phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-006
     title: Quản lý kết nối, đăng ký dài hạn và tài nguyên dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-007
     title: Phát hiện rò rỉ ByteBuf và lỗi IllegalReferenceCountException
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: memory-and-resources-008
     title: Đặt giới hạn bộ nhớ cho bộ đệm, phân mảnh và resume
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1414,7 +1414,7 @@ menu:
   childs:
   - slug: spring-boot-setup-001
     title: Chuẩn bị Java 21, Gradle và spring-boot-starter-rsocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-002
     title: Quản lý phiên bản tương thích bằng dependency management của Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-003
     title: 'Cấu trúc ứng dụng: cấu hình, bộ xử lý, dịch vụ và DTO'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-004
     title: Tự cấu hình RSocketStrategies, RSocketMessageHandler và RSocketRequester.Builder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-005
     title: Cấu hình máy chủ TCP độc lập qua spring.rsocket.server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-006
     title: Cấu hình RSocket qua WebSocket trên máy chủ WebFlux dùng Reactor Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-007
     title: Phân biệt cổng RSocket độc lập với cổng HTTP của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-008
     title: Tùy chỉnh bằng RSocketServerCustomizer và RSocketConnectorConfigurer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: spring-boot-setup-009
     title: Quản lý cấu hình môi trường, địa chỉ dịch vụ và thông tin bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1498,7 +1498,7 @@ menu:
   childs:
   - slug: spring-message-handlers-001
     title: Vai trò của @Controller và @MessageMapping trong xử lý RSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1507,7 +1507,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-002
     title: Thiết kế route, tiền tố ở cấp lớp và biến đường dẫn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-003
     title: Nhận dữ liệu bằng @Payload và tham số DTO
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-004
     title: Đọc biến route bằng @DestinationVariable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-005
     title: Chọn mô hình tương tác từ kiểu đầu vào và đầu ra của handler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-006
     title: Xử lý request-response với Mono và fire-and-forget với Mono<Void>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-007
     title: Xử lý request-stream với Flux và request-channel với Publisher đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-008
     title: Tiếp nhận SETUP và METADATA_PUSH bằng @ConnectMapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-009
     title: Kiểm tra dữ liệu đầu vào và xử lý lỗi giải mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-010
     title: Xử lý ngoại lệ bằng @MessageExceptionHandler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: spring-message-handlers-011
     title: Nhận RSocketRequester trong handler để gọi ngược phía kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
   childs:
   - slug: rsocket-requester-001
     title: Khởi tạo requester bằng builder và lựa chọn TCP hoặc WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-002
     title: Khai báo setupRoute, setupData và setupMetadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-003
     title: Cấu hình dataMimeType, metadataMimeType và RSocketStrategies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-004
     title: Gửi route và dữ liệu bằng route(...), data(...)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-005
     title: Nhận một kết quả bằng retrieveMono và nhiều kết quả bằng retrieveFlux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-006
     title: Gửi fire-and-forget bằng send và hiểu tín hiệu hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-007
     title: Tạo request-channel từ Publisher đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-008
     title: Truyền thông tin kiểu dữ liệu cho generic và Publisher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-009
     title: Cung cấp RSocketMessageHandler để xử lý yêu cầu ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-010
     title: Chia sẻ requester, quản lý kết nối và thời điểm dispose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: rsocket-requester-011
     title: Đặt timeout, hủy đăng ký và xử lý lỗi trong chuỗi gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
   childs:
   - slug: spring-metadata-001
     title: Mã hóa và giải mã composite metadata bằng RSocketStrategies
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: spring-metadata-002
     title: Đăng ký encoder, decoder và thứ tự lựa chọn codec
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: spring-metadata-003
     title: Trích xuất metadata bằng MetadataExtractor và metadataToExtract
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: spring-metadata-004
     title: Đưa metadata đã trích xuất vào tham số @Header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: spring-metadata-005
     title: Phân biệt route của Spring với địa chỉ HTTP và header HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: spring-metadata-006
     title: Truyền đồng thời route, thông tin xác thực và mã tương quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: spring-metadata-007
     title: Thiết kế metadata tùy chỉnh và xử lý kiểu chưa hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: spring-metadata-008
     title: Phối hợp MIME type và codec giữa hai ứng dụng độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1777,7 +1777,7 @@ menu:
   childs:
   - slug: rsocket-security-001
     title: Mô hình đe dọa cho kết nối dài hạn và luồng dữ liệu hai chiều
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
     summary: ''
   - slug: rsocket-security-002
     title: Bảo vệ truyền tải bằng TLS, WSS và kiểm tra chứng chỉ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: rsocket-security-003
     title: Xác thực ở bước SETUP, từng yêu cầu hoặc kết hợp cả hai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: rsocket-security-004
     title: Metadata xác thực dạng simple authentication và bearer token
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: rsocket-security-005
     title: Tích hợp @EnableRSocketSecurity và PayloadSocketAcceptorInterceptor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: rsocket-security-006
     title: Xác thực JWT bằng ReactiveJwtDecoder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: rsocket-security-007
     title: Phân quyền theo route, loại trao đổi và quyền của người gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: rsocket-security-008
     title: Bảo vệ riêng yêu cầu ngược từ máy chủ về phía kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
     summary: ''
   - slug: rsocket-security-009
     title: Truyền danh tính khi nhiều người dùng chung một kết nối dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: rsocket-security-010
     title: Xử lý token hết hạn, thu hồi quyền và kết nối đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: rsocket-security-011
     title: Giới hạn kích thước, số luồng và tốc độ để chống lạm dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: rsocket-security-012
     title: Che thông tin xác thực trong log, trace và thông báo lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
   childs:
   - slug: data-flow-design-001
     title: Chọn nguồn dữ liệu theo từng đăng ký hoặc dùng chung cho nhiều bên nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: data-flow-design-002
     title: Phát dữ liệu qua Reactor Sinks và xử lý kết quả phát thất bại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: data-flow-design-003
     title: Phân phối một nguồn tới nhiều bên nhận với bộ đệm có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: data-flow-design-004
     title: Chọn chính sách cho bên nhận chậm theo yêu cầu nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: data-flow-design-005
     title: Dùng map, flatMap và concatMap theo yêu cầu đồng thời và thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: data-flow-design-006
     title: Gom nhóm, lấy mẫu và giảm tần suất khi truyền dữ liệu thời gian thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: data-flow-design-007
     title: Tách tác vụ chặn khỏi event loop và giới hạn tài nguyên thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: data-flow-design-008
     title: Truyền ngữ cảnh bằng Reactor Context qua các ranh giới bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: data-flow-design-009
     title: Đóng nguồn dữ liệu khi không còn bên nhận và tránh đăng ký bị bỏ quên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
   childs:
   - slug: business-reliability-001
     title: Phân biệt độ tin cậy truyền tải, tiếp tục phiên và lưu trữ bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
     summary: ''
   - slug: business-reliability-002
     title: Các tình huống không biết chắc yêu cầu đã được xử lý hay chưa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: business-reliability-003
     title: Thiết kế khóa chống xử lý lặp (idempotency key) cho lệnh có tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: business-reliability-004
     title: Mã định danh thông điệp, số thứ tự và phát hiện khoảng trống dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: business-reliability-005
     title: Xác nhận, checkpoint và phát lại dữ liệu ở tầng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: business-reliability-006
     title: Phối hợp transaction cơ sở dữ liệu với việc gửi thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: business-reliability-007
     title: Ranh giới nhất quán khi một luồng dữ liệu đi qua nhiều dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: business-reliability-008
     title: Thiết kế tiếp tục từ vị trí nghiệp vụ khi không thể resume giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: business-reliability-009
     title: Chọn retry theo loại lỗi và tránh nhân bản tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2056,7 +2056,7 @@ menu:
   childs:
   - slug: browser-compatibility-001
     title: Luồng kết nối RSocket từ ứng dụng trình duyệt qua WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-002
     title: Lựa chọn thư viện phía trình duyệt và kiểm tra phiên bản tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-003
     title: Thống nhất route, composite metadata và định dạng dữ liệu giữa Java và JavaScript
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-004
     title: Đăng ký, hủy và dọn dẹp luồng theo vòng đời giao diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-005
     title: Ảnh hưởng của đổi mạng, tab nền và đóng trình duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-006
     title: Truyền thông tin xác thực và xử lý hết hạn ở phía trình duyệt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-007
     title: Giới hạn môi trường WebSocket, proxy và chính sách Origin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: browser-compatibility-008
     title: Kiểm thử tương thích giữa các ngôn ngữ bằng hợp đồng payload và metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2131,7 +2131,7 @@ menu:
   childs:
   - slug: system-integration-001
     title: Chọn ranh giới dùng RSocket trong kiến trúc nhiều dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2140,7 +2140,7 @@ menu:
     summary: ''
   - slug: system-integration-002
     title: Chuyển yêu cầu HTTP thành lời gọi RSocket và quản lý hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
     summary: ''
   - slug: system-integration-003
     title: Chuyển nguồn dữ liệu phản ứng thành request-stream
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: system-integration-004
     title: Tích hợp nguồn dữ liệu chặn mà không chặn event loop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: system-integration-005
     title: Cầu nối tới Kafka hoặc RabbitMQ và ranh giới xác nhận thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: system-integration-006
     title: Phân biệt RSocket trực tiếp với broker trong lưu trữ và phát lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: system-integration-007
     title: Giới thiệu inbound gateway và outbound gateway của Spring Integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: system-integration-008
     title: Bảo toàn thời hạn xử lý, danh tính và mã tương quan qua các giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: system-integration-009
     title: Chọn giao thức theo nhu cầu thời gian thực, độ bền và hệ sinh thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2215,7 +2215,7 @@ menu:
   childs:
   - slug: load-balancing-001
     title: Ảnh hưởng của kết nối dài hạn đến phân phối tải giữa các máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2224,7 +2224,7 @@ menu:
     summary: ''
   - slug: load-balancing-002
     title: Cân bằng kết nối ở tầng mạng và cân bằng yêu cầu ở phía gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2233,7 +2233,7 @@ menu:
     summary: ''
   - slug: load-balancing-003
     title: Khám phá dịch vụ và cập nhật danh sách đích kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
     summary: ''
   - slug: load-balancing-004
     title: Giới thiệu rsocket-load-balancer và lựa chọn máy chủ theo tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: load-balancing-005
     title: Quản lý số kết nối và giới hạn số luồng trên mỗi máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: load-balancing-006
     title: Ảnh hưởng của trạng thái phiên và resume đến việc đổi máy chủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: load-balancing-007
     title: Giảm tải có kiểm soát khi loại một máy chủ khỏi cụm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: load-balancing-008
     title: Tránh thử lại qua nhiều tầng và khuếch đại lưu lượng khi có sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2290,7 +2290,7 @@ menu:
   childs:
   - slug: system-observability-001
     title: Phân biệt chỉ số kết nối, luồng tương tác, payload và nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2299,7 +2299,7 @@ menu:
     summary: ''
   - slug: system-observability-002
     title: Theo dõi độ trễ, lưu lượng, lỗi và số luồng đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2308,7 +2308,7 @@ menu:
     summary: ''
   - slug: system-observability-003
     title: Theo dõi bộ đệm, nhu cầu nhận và dấu hiệu bên nhận chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2317,7 +2317,7 @@ menu:
     summary: ''
   - slug: system-observability-004
     title: Theo dõi reconnect, resume, lease và lỗi thiết lập phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
     summary: ''
   - slug: system-observability-005
     title: Tích hợp Micrometer và công cụ giám sát ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: system-observability-006
     title: Truyền mã tương quan và ngữ cảnh truy vết qua metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: system-observability-007
     title: Log theo vòng đời luồng và giới hạn dữ liệu payload được ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: system-observability-008
     title: Thiết kế cảnh báo cho mất kết nối, quá tải và rò rỉ tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2365,7 +2365,7 @@ menu:
   childs:
   - slug: performance-001
     title: Thiết kế phép đo theo kích thước payload, số kết nối và số luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2374,7 +2374,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Đo thông lượng và phân vị độ trễ thay vì chỉ thời gian trung bình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2383,7 +2383,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: So sánh TCP với WebSocket trong cùng điều kiện tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2392,7 +2392,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Đánh giá JSON, CBOR và Protobuf theo chi phí mã hóa và kích thước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2401,7 +2401,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Ảnh hưởng của prefetch, bộ đệm và mức xử lý đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2410,7 +2410,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Ảnh hưởng của phân mảnh, zero-copy và bộ nhớ trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Đánh đổi giữa dùng chung kết nối và phân tách nhóm lưu lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Phân biệt điểm nghẽn mạng, CPU, GC, event loop và dịch vụ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Kiểm thử tải kéo dài, nhiều bên nhận chậm và ngắt kết nối hàng loạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2449,7 +2449,7 @@ menu:
   childs:
   - slug: testing-001
     title: 'Phân tầng kiểm thử: hàm xử lý, giao thức, tích hợp và toàn tuyến'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2458,7 +2458,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Kiểm thử Mono, Flux và tín hiệu lỗi bằng StepVerifier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2467,7 +2467,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Điều khiển nhu cầu nhận và hủy trong kiểm thử backpressure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2476,7 +2476,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Dùng thời gian ảo cho timeout, retry và nguồn phát định kỳ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2485,7 +2485,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Tạo nguồn kiểm thử bằng TestPublisher
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2494,7 +2494,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử RSocket Java bằng truyền tải cục bộ không qua mạng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử tích hợp Spring Boot với cổng động và RSocketRequester
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử đủ bốn mô hình tương tác và yêu cầu ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử metadata, codec, dữ liệu sai và tương thích hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử xác thực, phân quyền và token hết hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Mô phỏng mất mạng, resume bị từ chối và máy chủ khởi động lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử giải phóng tài nguyên sau lỗi, hủy và đóng kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2560,7 +2560,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: 'Kết nối thất bại: sai cổng, transport, đường dẫn hoặc chứng chỉ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2569,7 +2569,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: SETUP bị từ chối do MIME type, phiên bản hoặc chính sách truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Route không khớp và mô hình tương tác không đúng chữ ký handler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Lỗi giải mã payload và không tương thích cấu trúc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Không có dữ liệu do chưa subscribe hoặc chưa phát nhu cầu nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Bộ đệm tăng khi bên nhận chậm hoặc nguồn phát không tuân theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Timeout do tác vụ chặn trên event loop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Mất kết nối định kỳ do keepalive, proxy hoặc thời gian chờ nhàn rỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Resume thất bại do mất trạng thái hoặc bộ đệm không còn đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Rò rỉ payload, giải phóng sớm và lỗi đếm tham chiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Đọc log io.rsocket.FrameLogger và dựng lại trình tự trao đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Phân biệt lỗi ứng dụng, Reactor, RSocket và lớp truyền tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
   childs:
   - slug: deployment-and-operations-001
     title: Đóng gói ứng dụng và công bố cổng TCP hoặc WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-002
     title: Cấu hình reverse proxy và load balancer cho kết nối dài hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-003
     title: Kiểm tra WebSocket Upgrade, giới hạn frame và thời gian chờ nhàn rỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-004
     title: Cấu hình TLS, quản lý chứng chỉ và thay đổi thông tin bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-005
     title: Giới hạn số kết nối, số luồng, bộ nhớ và tài nguyên hệ điều hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-006
     title: Kiểm tra sức khỏe, readiness và khả năng chấp nhận kết nối mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-007
     title: Dừng có kiểm soát và xử lý các luồng đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-008
     title: Triển khai cuốn chiếu và tương thích giữa hai phiên bản ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-009
     title: Đặt chính sách phục hồi sau khởi động lại và mất trạng thái phiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: deployment-and-operations-010
     title: Định nghĩa mục tiêu độ trễ, tỷ lệ lỗi và quy trình ứng phó sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
   childs:
   - slug: hands-on-project-001
     title: Dựng cặp ứng dụng RSocket Java để quan sát bốn mô hình tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2773,7 +2773,7 @@ menu:
     summary: ''
   - slug: hands-on-project-002
     title: Xây dựng dịch vụ Spring Boot truy vấn và theo dõi đơn hàng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
     summary: ''
   - slug: hands-on-project-003
     title: Xây dựng kênh hai chiều cho điều khiển thiết bị và phản hồi trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
     summary: ''
   - slug: hands-on-project-004
     title: Phân phối dữ liệu thời gian thực tới nhiều bên nhận có tốc độ khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: hands-on-project-005
     title: Tích hợp giao diện trình duyệt qua RSocket over WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: hands-on-project-006
     title: Bảo vệ dịch vụ bằng JWT và phân quyền theo route
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: hands-on-project-007
     title: Thử nghiệm mất mạng, tiếp tục phiên và chống xử lý lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: hands-on-project-008
     title: Đo tải, tìm điểm nghẽn và kiểm tra giới hạn bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: hands-on-project-009
     title: Thiết kế phương án HTTP, SSE hoặc broker khi RSocket không phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: hands-on-project-010
     title: Hoàn thiện sơ đồ luồng, hợp đồng dữ liệu và tiêu chí nghiệm thu hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

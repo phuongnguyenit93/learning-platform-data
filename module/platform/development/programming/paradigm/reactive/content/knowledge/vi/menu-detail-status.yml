@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Lập trình phản ứng là gì và bài toán thay đổi theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Từ cập nhật thủ công đến lan truyền thay đổi qua quan hệ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Luồng dữ liệu, sự kiện, tín hiệu và các thuật ngữ nền tảng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: 'Một ví dụ xuyên suốt: tìm kiếm gợi ý khi người dùng nhập'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phân biệt lập trình phản ứng, hệ thống phản ứng và Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Mối liên hệ với lập trình hàm, hướng đối tượng và hướng sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Lợi ích, chi phí và những trường hợp không phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Phạm vi kiến thức và thứ tự học từ mô hình đến ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
   childs:
   - slug: asynchronous-programming-001
     title: Đồng bộ và bất đồng bộ trong vòng đời một tác vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-002
     title: 'Chặn và không chặn: phân biệt với đồng bộ và bất đồng bộ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-003
     title: 'Đồng thời và song song: vai trò của luồng thực thi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-004
     title: Vòng lặp sự kiện và mô hình xử lý dựa trên thông báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-005
     title: 'Hàm gọi lại: đảo quyền điều khiển và khó khăn khi phối hợp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-006
     title: 'Future và CompletableFuture: một kết quả so với nhiều phần tử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-007
     title: Cơ chế đẩy, kéo và phối hợp đẩy–kéo trong trao đổi dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-008
     title: Độ trễ, thông lượng và khả năng đáp ứng dưới tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: asynchronous-programming-009
     title: 'Luồng ảo Java: mối liên hệ với I/O chặn và mô hình phản ứng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
   childs:
   - slug: stream-model-001
     title: Biểu diễn một chuỗi giá trị theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: stream-model-002
     title: Phần tử dữ liệu và tín hiệu điều khiển trong một luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: stream-model-003
     title: Nguồn, toán tử, bên tiêu thụ và đồ thị xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: stream-model-004
     title: Luồng hữu hạn, vô hạn, rỗng và không kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: stream-model-005
     title: Không có phần tử, phần tử rỗng và giá trị null
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: stream-model-006
     title: Đọc sơ đồ marble để mô tả dữ liệu, thời gian và kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: stream-model-007
     title: Lắp ráp chuỗi xử lý, đăng ký nhận và thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: stream-model-008
     title: Tính khai báo, tính lười và thời điểm phát sinh tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: stream-model-009
     title: Phân biệt luồng phản ứng với Java Stream và bộ sưu tập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
   childs:
   - slug: signal-contract-001
     title: Ý nghĩa và thứ tự của onSubscribe, onNext, onError, onComplete
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: signal-contract-002
     title: Tín hiệu kết thúc và giới hạn phát dữ liệu sau khi kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: signal-contract-003
     title: Phân biệt hoàn thành bình thường, lỗi và hủy đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: signal-contract-004
     title: Tuần tự hóa tín hiệu và tính an toàn khi có nhiều luồng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: signal-contract-005
     title: Truyền lỗi qua tín hiệu so với ném ngoại lệ trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: signal-contract-006
     title: Nguồn không tuân thủ hợp đồng và hệ quả cho bên tiêu thụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: signal-contract-007
     title: Hủy đăng ký trong khi dữ liệu hoặc tín hiệu đang được phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: signal-contract-008
     title: Giá trị null và cách biểu diễn dữ liệu thiếu trong Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: signal-contract-009
     title: Đọc diễn tiến tín hiệu của các tình huống biên bằng sơ đồ marble
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
   childs:
   - slug: reactive-streams-001
     title: Mục tiêu và phạm vi của đặc tả Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: reactive-streams-002
     title: 'Publisher: vai trò phát dữ liệu và tiếp nhận đăng ký'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: reactive-streams-003
     title: 'Subscriber: tiếp nhận subscription, dữ liệu và tín hiệu kết thúc'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: reactive-streams-004
     title: 'Subscription: yêu cầu dữ liệu bằng request và hủy bằng cancel'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: reactive-streams-005
     title: 'Processor: vai trò trung gian vừa nhận vừa phát dữ liệu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: reactive-streams-006
     title: Nhu cầu cộng dồn, request không hợp lệ và nhu cầu không giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: reactive-streams-007
     title: Quan hệ giữa số phần tử yêu cầu và số phần tử được phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: reactive-streams-008
     title: Hợp đồng bộ nhớ, thứ tự tín hiệu và lời gọi lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: reactive-streams-009
     title: Bộ kiểm tra tương thích TCK và giới hạn của việc tự cài đặt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: reactive-streams-010
     title: Java Flow và cách kết nối với hệ sinh thái Reactive Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
   childs:
   - slug: subscriptions-001
     title: Đăng ký nhận dữ liệu và quyền sở hữu vòng đời subscription
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: subscriptions-002
     title: Mỗi đăng ký tạo một lần thực thi hay dùng chung một nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: subscriptions-003
     title: Đăng ký bên trong toán tử và nguyên nhân tạo luồng tách rời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: subscriptions-004
     title: Trả về chuỗi xử lý so với tự gọi subscribe trong tầng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: subscriptions-005
     title: Tác dụng phụ tại thời điểm lắp ráp và thời điểm đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: subscriptions-006
     title: Hủy đăng ký theo thời gian chờ, yêu cầu HTTP hoặc vòng đời ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: subscriptions-007
     title: Nhiều bên đăng ký và việc phát sinh lặp lại tác vụ bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: subscriptions-008
     title: Quan sát vòng đời bằng các điểm móc trước và sau tín hiệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: subscriptions-009
     title: Theo dõi quan hệ giữa đăng ký, nguồn và các nhánh xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
   childs:
   - slug: hot-cold-publishers-001
     title: 'Nguồn lạnh: dữ liệu và tác vụ được tạo theo từng đăng ký'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-002
     title: 'Nguồn nóng: dữ liệu tồn tại độc lập với thời điểm đăng ký'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-003
     title: Đăng ký muộn và nguy cơ bỏ lỡ phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-004
     title: Phát đa hướng và chia sẻ một nguồn cho nhiều bên tiêu thụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-005
     title: Kết nối thủ công, tự kết nối và đếm số bên đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-006
     title: Phát lại dữ liệu, bộ nhớ đệm và giới hạn lưu giữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-007
     title: Tái kết nối sau khi tất cả bên đăng ký rời đi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-008
     title: Bên tiêu thụ chậm trong một luồng dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: hot-cold-publishers-009
     title: Lựa chọn nguồn nóng hoặc lạnh cho sự kiện, I/O và trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
   childs:
   - slug: backpressure-001
     title: Chênh lệch tốc độ phát và xử lý dẫn đến quá tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: backpressure-002
     title: Điều tiết nhu cầu từ bên tiêu thụ về nguồn phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: backpressure-003
     title: Áp lực ngược khác gì giới hạn tốc độ và kiểm soát lưu lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: backpressure-004
     title: Yêu cầu theo lô, nạp trước và điều chỉnh kích thước lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: backpressure-005
     title: Truyền nhu cầu qua từng toán tử trong chuỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: backpressure-006
     title: Hàng đợi và ranh giới bất đồng bộ làm thay đổi nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: backpressure-007
     title: Đệm có giới hạn và chính sách khi bộ đệm đầy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: backpressure-008
     title: Bỏ phần tử, giữ phần tử mới nhất hoặc kết thúc bằng lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: backpressure-009
     title: Nguồn không thể giảm tốc và giới hạn của áp lực ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: backpressure-010
     title: Nhu cầu không giới hạn và nguy cơ tăng bộ nhớ ngoài dự kiến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: backpressure-011
     title: Kiểm tra áp lực ngược bằng bên tiêu thụ chậm có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
   childs:
   - slug: source-creation-001
     title: Tạo luồng từ một giá trị, mảng, bộ sưu tập và khoảng số
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: source-creation-002
     title: Tạo nguồn rỗng, nguồn lỗi và nguồn không kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: source-creation-003
     title: Trì hoãn việc tạo nguồn cho đến khi có đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: source-creation-004
     title: Chuyển Callable, Supplier, Future và CompletionStage thành nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: source-creation-005
     title: Tạo nguồn từ hàm gọi lại và bộ lắng nghe sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: source-creation-006
     title: Phát từng phần tử theo nhu cầu bằng bộ sinh trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: source-creation-007
     title: Tiếp nhận dữ liệu từ nhiều nơi qua bộ phát có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: source-creation-008
     title: Xử lý phát đồng thời và kết quả phát không thành công
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: source-creation-009
     title: Gỡ bộ lắng nghe và giải phóng tài nguyên khi nguồn bị hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: source-creation-010
     title: 'Đọc tệp và nguồn I/O: kiểm tra hành vi chặn của bộ chuyển đổi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
   childs:
   - slug: data-transformations-001
     title: Biến đổi từng phần tử và giữ quan hệ một–một
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: data-transformations-002
     title: Lọc phần tử theo điều kiện và theo kiểu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: data-transformations-003
     title: Loại bỏ phần tử trùng lặp toàn luồng hoặc liền kề
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: data-transformations-004
     title: Lấy, bỏ qua và giới hạn phần tử theo số lượng hoặc điều kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: data-transformations-005
     title: Đánh số phần tử và kết hợp dữ liệu với thông tin vị trí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -832,7 +832,7 @@ menu:
     summary: ''
   - slug: data-transformations-006
     title: Xử lý có điều kiện khi một đầu vào tạo không hoặc một đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -841,7 +841,7 @@ menu:
     summary: ''
   - slug: data-transformations-007
     title: Tách phần dữ liệu hợp lệ và biểu diễn lỗi xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
     summary: ''
   - slug: data-transformations-008
     title: Phân biệt biến đổi dữ liệu với quan sát tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -859,7 +859,7 @@ menu:
     summary: ''
   - slug: data-transformations-009
     title: Đóng gói một chuỗi toán tử thành phép biến đổi tái sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -868,7 +868,7 @@ menu:
     summary: ''
   - slug: data-transformations-010
     title: Lựa chọn toán tử theo số đầu ra, trạng thái và tín hiệu kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
   childs:
   - slug: stream-composition-001
     title: Làm phẳng luồng lồng nhau và ý nghĩa của phép ánh xạ bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: stream-composition-002
     title: 'flatMap: phối hợp các luồng con và cho phép xen kẽ kết quả'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: stream-composition-003
     title: 'concatMap: xử lý luồng con tuần tự và bảo toàn thứ tự'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: stream-composition-004
     title: 'flatMapSequential: xử lý đồng thời nhưng phát theo thứ tự'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -916,7 +916,7 @@ menu:
     summary: ''
   - slug: stream-composition-005
     title: 'switchMap: chuyển sang nguồn mới và hủy nguồn trước'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -925,7 +925,7 @@ menu:
     summary: ''
   - slug: stream-composition-006
     title: 'concat và merge: nối tiếp hoặc trộn nhiều nguồn'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -934,7 +934,7 @@ menu:
     summary: ''
   - slug: stream-composition-007
     title: 'zip và combineLatest: ghép theo vị trí hoặc giá trị gần nhất'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
     summary: ''
   - slug: stream-composition-008
     title: Kết hợp một nguồn chính với dữ liệu từ nguồn phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -952,7 +952,7 @@ menu:
     summary: ''
   - slug: stream-composition-009
     title: Phối hợp tín hiệu hoàn thành khi không cần giữ giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -961,7 +961,7 @@ menu:
     summary: ''
   - slug: stream-composition-010
     title: Giới hạn đồng thời, nạp trước và ảnh hưởng của nguồn con chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -970,7 +970,7 @@ menu:
     summary: ''
   - slug: stream-composition-011
     title: Nguồn rỗng, nguồn lỗi và nguồn không kết thúc khi ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
   childs:
   - slug: time-operators-001
     title: Thời gian sự kiện, thời gian xử lý và vai trò của đồng hồ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: time-operators-002
     title: Nguồn phát theo khoảng thời gian và bộ định thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1000,7 +1000,7 @@ menu:
     summary: ''
   - slug: time-operators-003
     title: Trì hoãn đăng ký, trì hoãn phần tử và trì hoãn tín hiệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1009,7 +1009,7 @@ menu:
     summary: ''
   - slug: time-operators-004
     title: 'debounce: chờ khoảng yên lặng trước khi phát giá trị'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1018,7 +1018,7 @@ menu:
     summary: ''
   - slug: time-operators-005
     title: 'throttle và sample: lựa chọn giá trị theo nhịp thời gian'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1027,7 +1027,7 @@ menu:
     summary: ''
   - slug: time-operators-006
     title: 'timeout: giới hạn thời gian chờ và lựa chọn hành vi thay thế'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
     summary: ''
   - slug: time-operators-007
     title: Đo khoảng cách thời gian giữa các phần tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1045,7 +1045,7 @@ menu:
     summary: ''
   - slug: time-operators-008
     title: Đua giữa nguồn dữ liệu, bộ định thời và tín hiệu hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1054,7 +1054,7 @@ menu:
     summary: ''
   - slug: time-operators-009
     title: Lựa chọn bộ lập lịch cho toán tử phụ thuộc thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1063,7 +1063,7 @@ menu:
     summary: ''
   - slug: time-operators-010
     title: Kiểm thử hành vi thời gian bằng đồng hồ ảo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
   childs:
   - slug: batching-windowing-001
     title: 'reduce: tổng hợp kết quả sau khi nguồn hoàn thành'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1084,7 +1084,7 @@ menu:
     summary: ''
   - slug: batching-windowing-002
     title: 'scan: phát trạng thái tích lũy sau từng phần tử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1093,7 +1093,7 @@ menu:
     summary: ''
   - slug: batching-windowing-003
     title: 'collect: gom vào cấu trúc dữ liệu và giới hạn bộ nhớ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1102,7 +1102,7 @@ menu:
     summary: ''
   - slug: batching-windowing-004
     title: Đếm, kiểm tra tồn tại và kiểm tra điều kiện toàn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1111,7 +1111,7 @@ menu:
     summary: ''
   - slug: batching-windowing-005
     title: 'buffer: gom phần tử thành lô theo số lượng hoặc thời gian'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
     summary: ''
   - slug: batching-windowing-006
     title: 'window: chia nguồn thành các luồng con'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1129,7 +1129,7 @@ menu:
     summary: ''
   - slug: batching-windowing-007
     title: 'groupBy: phân nhóm theo khóa và quản lý vòng đời nhóm'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1138,7 +1138,7 @@ menu:
     summary: ''
   - slug: batching-windowing-008
     title: Cửa sổ chồng lấn, khoảng trống và điều kiện đóng cửa sổ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1147,7 +1147,7 @@ menu:
     summary: ''
   - slug: batching-windowing-009
     title: Nguồn vô hạn và các phép tổng hợp không thể kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
     summary: ''
   - slug: batching-windowing-010
     title: Nhiều nhóm, nhóm không được tiêu thụ và nguy cơ tắc nghẽn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
   childs:
   - slug: error-recovery-001
     title: Phân loại lỗi dữ liệu, lỗi nghiệp vụ và lỗi hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: error-recovery-002
     title: Lỗi kết thúc một chuỗi và phạm vi lỗi của luồng con
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1186,7 +1186,7 @@ menu:
     summary: ''
   - slug: error-recovery-003
     title: Chuyển đổi lỗi nhưng giữ nguyên nguyên nhân ban đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1195,7 +1195,7 @@ menu:
     summary: ''
   - slug: error-recovery-004
     title: Thay lỗi bằng giá trị mặc định hoặc một nguồn khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1204,7 +1204,7 @@ menu:
     summary: ''
   - slug: error-recovery-005
     title: Bỏ qua một phần tử lỗi bằng cách đặt phục hồi đúng vị trí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
     summary: ''
   - slug: error-recovery-006
     title: Thử lại nguồn và phân biệt retry với repeat
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1222,7 +1222,7 @@ menu:
     summary: ''
   - slug: error-recovery-007
     title: Giới hạn số lần thử, thời gian chờ tăng dần và độ lệch ngẫu nhiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1231,7 +1231,7 @@ menu:
     summary: ''
   - slug: error-recovery-008
     title: Thử lại tác vụ có tác dụng phụ và yêu cầu tính lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
     summary: ''
   - slug: error-recovery-009
     title: Thời gian chờ, hủy đăng ký và chính sách phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: error-recovery-010
     title: Xử lý ngay hoặc trì hoãn lỗi khi phối hợp nhiều nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: error-recovery-011
     title: Tín hiệu lỗi không thể chuyển tiếp và các cơ chế quan sát toàn cục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: error-recovery-012
     title: Giới hạn và rủi ro của onErrorContinue trong Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1279,7 +1279,7 @@ menu:
   childs:
   - slug: resource-management-001
     title: Gắn vòng đời tài nguyên với vòng đời của chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
     summary: ''
   - slug: resource-management-002
     title: Mở, sử dụng và đóng tài nguyên trên mọi đường kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
     summary: ''
   - slug: resource-management-003
     title: Dọn dẹp đồng bộ và dọn dẹp bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
     summary: ''
   - slug: resource-management-004
     title: Xử lý riêng khi hoàn thành, phát lỗi hoặc bị hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: resource-management-005
     title: Lỗi trong lúc dọn dẹp và quan hệ với lỗi nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: resource-management-006
     title: Phần tử bị bỏ, bộ đệm chưa tiêu thụ và tài nguyên cần giải phóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: resource-management-007
     title: Tránh giữ tham chiếu qua bộ nhớ đệm, nhóm và nguồn dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: resource-management-008
     title: Tác vụ kéo dài sau khi bên tiêu thụ hủy đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: resource-management-009
     title: Kiểm tra không rò rỉ tệp, kết nối và bộ lắng nghe
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1363,7 +1363,7 @@ menu:
   childs:
   - slug: execution-schedulers-001
     title: Chuỗi xử lý chạy trên luồng nào khi chưa đổi bộ lập lịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1372,7 +1372,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-002
     title: Bộ lập lịch và ranh giới thực thi của từng đoạn chuỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1381,7 +1381,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-003
     title: 'subscribeOn: thay đổi nơi thực hiện việc đăng ký nguồn'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-004
     title: 'publishOn hoặc observeOn: chuyển nơi xử lý tín hiệu phía sau'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-005
     title: Vị trí nhiều điểm chuyển bộ lập lịch và chi phí chuyển ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-006
     title: Công việc thiên về CPU và công việc chờ I/O
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-007
     title: Cô lập lời gọi chặn vào tài nguyên thực thi có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-008
     title: Xử lý đồng thời khác với chia dữ liệu để chạy song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-009
     title: Giới hạn luồng, hàng đợi và hành vi khi tài nguyên thực thi đầy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-010
     title: Nguy cơ tự chờ, bế tắc và chặn vòng lặp sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: execution-schedulers-011
     title: Quản lý vòng đời bộ lập lịch do ứng dụng tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
   childs:
   - slug: state-management-001
     title: Hàm thuần, dữ liệu bất biến và khả năng suy luận chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: state-management-002
     title: Trạng thái riêng cho mỗi đăng ký và trạng thái dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: state-management-003
     title: Biến khả biến trong lambda và nguy cơ tranh chấp dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: state-management-004
     title: Thứ tự tín hiệu không thay thế an toàn truy cập giữa nhiều luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: state-management-005
     title: Mô hình hóa trạng thái bằng sự kiện và phép tích lũy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: state-management-006
     title: Lựa chọn phạm vi đồng bộ hóa khi có tài nguyên dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: state-management-007
     title: Tính xác định khi kết quả phụ thuộc thứ tự hoặc thời điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: state-management-008
     title: Ảnh chụp trạng thái, phát lại sự kiện và tái tạo kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
   childs:
   - slug: context-propagation-001
     title: Ngữ cảnh yêu cầu và dữ liệu đi kèm vòng đời đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: context-propagation-002
     title: Vì sao ThreadLocal không tự đi theo chuỗi bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: context-propagation-003
     title: Reactor Context và chiều truyền ngữ cảnh qua chuỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: context-propagation-004
     title: Đọc và bổ sung ngữ cảnh tại thời điểm đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: context-propagation-005
     title: Truyền mã theo dõi yêu cầu qua luồng con và ranh giới thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: context-propagation-006
     title: Kết nối ngữ cảnh với ghi log, bảo mật và truy vết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: context-propagation-007
     title: Tích hợp hệ thống cũ dùng ThreadLocal theo phạm vi kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1603,7 +1603,7 @@ menu:
     summary: ''
   - slug: context-propagation-008
     title: Tránh rò rỉ ngữ cảnh giữa các yêu cầu dùng chung luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
   childs:
   - slug: project-reactor-001
     title: 'Mono và Flux: biểu diễn không–một và không–nhiều phần tử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: project-reactor-002
     title: Tạo, ghép và trả về chuỗi Reactor trong mã Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: project-reactor-003
     title: 'defer và fromCallable: lựa chọn thời điểm tạo giá trị'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: project-reactor-004
     title: BaseSubscriber và kiểm soát nhu cầu nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: project-reactor-005
     title: Sinks.One, Sinks.Many và lựa chọn cơ chế phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: project-reactor-006
     title: ConnectableFlux, share và cache trong quản lý nguồn dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: project-reactor-007
     title: then, thenReturn và xử lý Mono<Void>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1678,7 +1678,7 @@ menu:
     summary: ''
   - slug: project-reactor-008
     title: transform và transformDeferred trong tái sử dụng chuỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1687,7 +1687,7 @@ menu:
     summary: ''
   - slug: project-reactor-009
     title: publishOn, subscribeOn và các bộ lập lịch của Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1696,7 +1696,7 @@ menu:
     summary: ''
   - slug: project-reactor-010
     title: Kết nối Reactor với Java Flow, CompletionStage và thư viện khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
   childs:
   - slug: rxjava-001
     title: Observable, Flowable, Single, Maybe và Completable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: rxjava-002
     title: 'Observable và Flowable: khác biệt về hỗ trợ áp lực ngược'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: rxjava-003
     title: Disposable và Subscription trong quản lý hủy nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: rxjava-004
     title: 'Subject và Processor: phát dữ liệu và chuyển tiếp tín hiệu'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: rxjava-005
     title: Scheduler, subscribeOn và observeOn trong RxJava
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
     summary: ''
   - slug: rxjava-006
     title: Lựa chọn toán tử tương đương và khác biệt về ngữ nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: rxjava-007
     title: Chiến lược áp lực ngược khi chuyển Observable sang Flowable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1771,7 +1771,7 @@ menu:
     summary: ''
   - slug: rxjava-008
     title: Lỗi không thể giao cho bên nhận và cơ chế RxJavaPlugins
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1780,7 +1780,7 @@ menu:
     summary: ''
   - slug: rxjava-009
     title: Kết nối RxJava với Reactive Streams và Reactor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1789,7 +1789,7 @@ menu:
     summary: ''
   - slug: rxjava-010
     title: Lựa chọn Reactor hoặc RxJava theo môi trường tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
   childs:
   - slug: functional-reactive-programming-001
     title: Lập trình phản ứng hàm (FRP) và quan hệ với lập trình hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-002
     title: Sự kiện rời rạc và giá trị biến thiên theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-003
     title: 'Behavior và Signal: cách mô hình hóa giá trị theo thời gian'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-004
     title: Đồ thị phụ thuộc và lan truyền thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-005
     title: Đọc đồng thời nhiều giá trị phụ thuộc và lỗi cập nhật trung gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-006
     title: Tính nhất quán khi một thay đổi kéo theo nhiều cập nhật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1855,7 +1855,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-007
     title: Phụ thuộc động, chuyển nguồn và vòng phản hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1864,7 +1864,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-008
     title: Quan hệ và khác biệt giữa FRP cổ điển với thư viện luồng sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1873,7 +1873,7 @@ menu:
     summary: ''
   - slug: functional-reactive-programming-009
     title: Mô hình hóa giao diện phản ứng mà không đồng nhất FRP với bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
   childs:
   - slug: io-integration-001
     title: Kiểm tra toàn bộ đường đi I/O có thực sự không chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: io-integration-002
     title: HTTP client phản ứng và quản lý tài nguyên kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: io-integration-003
     title: Gọi nhiều dịch vụ độc lập bằng luồng con có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: io-integration-004
     title: Chuyển API hàm gọi lại sang nguồn có thể hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: io-integration-005
     title: Kết nối hàng đợi thông điệp và kiểm soát tốc độ tiêu thụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: io-integration-006
     title: Đọc dữ liệu lớn theo từng phần thay vì nạp toàn bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1939,7 +1939,7 @@ menu:
     summary: ''
   - slug: io-integration-007
     title: Cô lập JDBC và thư viện chặn khi chưa thể thay thế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1948,7 +1948,7 @@ menu:
     summary: ''
   - slug: io-integration-008
     title: Chuyển đổi CompletableFuture mà không chặn để lấy kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1957,7 +1957,7 @@ menu:
     summary: ''
   - slug: io-integration-009
     title: Hủy chuỗi và khả năng hủy tác vụ I/O ở lớp bên dưới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
   childs:
   - slug: web-applications-001
     title: 'Spring WebFlux: vị trí trong hệ sinh thái lập trình phản ứng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: web-applications-002
     title: Controller và handler trả về Mono hoặc Flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: web-applications-003
     title: Vòng lặp sự kiện và vòng đời một yêu cầu HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: web-applications-004
     title: 'WebClient: gửi yêu cầu, đọc phản hồi và xử lý lỗi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: web-applications-005
     title: Phát dữ liệu bằng Server-Sent Events và WebSocket
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: web-applications-006
     title: Tuần tự hóa phản hồi theo luồng và giới hạn đệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: web-applications-007
     title: Ngắt kết nối từ phía người dùng và hủy chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2032,7 +2032,7 @@ menu:
     summary: ''
   - slug: web-applications-008
     title: Áp lực ngược qua ranh giới HTTP và giới hạn của giao thức
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2041,7 +2041,7 @@ menu:
     summary: ''
   - slug: web-applications-009
     title: Xử lý lỗi, thời gian chờ và ngữ cảnh bảo mật của yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
     summary: ''
   - slug: web-applications-010
     title: Lựa chọn WebFlux hoặc mô hình Web chặn theo đặc điểm tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
   childs:
   - slug: data-transactions-001
     title: Trình điều khiển dữ liệu phản ứng và giới hạn của bộ chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: data-transactions-002
     title: 'R2DBC: kết nối, truy vấn và ánh xạ kết quả theo luồng'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: data-transactions-003
     title: Quản lý nhóm kết nối và giới hạn số truy vấn đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: data-transactions-004
     title: Ranh giới giao dịch gắn với đăng ký và ngữ cảnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: data-transactions-005
     title: TransactionalOperator và giao dịch phản ứng trong Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: data-transactions-006
     title: Hoàn tất, lỗi và hủy chuỗi khi đang có giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
     summary: ''
   - slug: data-transactions-007
     title: Phối hợp nhiều thao tác trong cùng một giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: data-transactions-008
     title: Tránh mở nhiều giao dịch ngoài ý muốn do đăng ký lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: data-transactions-009
     title: Phân trang, đọc theo luồng và tính nhất quán dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
     summary: ''
   - slug: data-transactions-010
     title: Giới hạn giao dịch giữa nhiều nguồn dữ liệu và dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
   childs:
   - slug: reactive-systems-001
     title: 'Bốn đặc tính: đáp ứng, chịu lỗi, co giãn và hướng thông điệp'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: reactive-systems-002
     title: Phân biệt áp dụng thư viện phản ứng với thiết kế cả hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: reactive-systems-003
     title: Ranh giới bất đồng bộ giữa các thành phần và dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: reactive-systems-004
     title: Giới hạn tải đầu vào và bảo vệ tài nguyên hữu hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: reactive-systems-005
     title: Cô lập lỗi bằng bulkhead và ngắt mạch bằng circuit breaker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: reactive-systems-006
     title: Ngân sách thời gian chờ và chuỗi lời gọi nhiều tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: reactive-systems-007
     title: Bão thử lại, giới hạn thử lại và tính lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: reactive-systems-008
     title: Bảo đảm giao nhận thông điệp, trùng lặp và thứ tự xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: reactive-systems-009
     title: Hàng đợi có giới hạn, điều tiết lưu lượng và loại tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
     summary: ''
   - slug: reactive-systems-010
     title: Dừng ứng dụng có kiểm soát và hoàn tất tác vụ đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
   childs:
   - slug: testing-001
     title: Phân lớp kiểm thử toán tử, thành phần và tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: 'StepVerifier: xác nhận dữ liệu, thứ tự và tín hiệu kết thúc'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử nguồn rỗng, nguồn lỗi và nguồn không kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Yêu cầu từng phần dữ liệu để xác minh áp lực ngược
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử hủy đăng ký và dọn dẹp tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Thời gian ảo cho delay, debounce, timeout và retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: 'TestPublisher: chủ động phát tín hiệu và tình huống vi phạm'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: 'PublisherProbe: xác minh nhánh dự phòng đã được đăng ký'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2320,7 +2320,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử nguồn nóng, đăng ký muộn và phát lại dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2329,7 +2329,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử xử lý đồng thời mà không phụ thuộc sleep tùy tiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2338,7 +2338,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Phát hiện lời gọi chặn bằng BlockHound trong môi trường phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2347,7 +2347,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử HTTP và dữ liệu phản ứng bằng hạ tầng tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
   childs:
   - slug: diagnostics-001
     title: Phân biệt nơi lắp ráp chuỗi và nơi lỗi được phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: diagnostics-002
     title: Ghi log tín hiệu và truy theo vòng đời đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: diagnostics-003
     title: checkpoint và thông tin lắp ráp phục vụ tìm lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: diagnostics-004
     title: Theo dõi chuỗi không chạy, không kết thúc hoặc bị hủy sớm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: diagnostics-005
     title: Quan sát phần tử bị bỏ và lỗi không thể chuyển tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: diagnostics-006
     title: Đo độ trễ, thông lượng, lỗi, hủy và số đăng ký đang hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: diagnostics-007
     title: Theo dõi hàng đợi, nhu cầu, kết nối và mức sử dụng bộ lập lịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: diagnostics-008
     title: Truy vết phân tán qua ranh giới bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2431,7 +2431,7 @@ menu:
     summary: ''
   - slug: diagnostics-009
     title: Kiểm soát chi phí chẩn đoán và bảo vệ dữ liệu khi ghi log
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
   childs:
   - slug: performance-001
     title: Lập mô hình tải dựa trên tốc độ đến và khả năng xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Giới hạn số luồng con thay vì khởi chạy không kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Điều chỉnh nạp trước, kích thước lô và bộ đệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Nút thắt ở luồng thực thi, kết nối, CPU và dịch vụ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Chi phí chuyển bộ lập lịch và hàng đợi trung gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Tối ưu chuỗi toán tử và khái niệm hợp nhất toán tử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Bộ nhớ giữ bởi cache, replay, collect và groupBy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Đo thông lượng và các phân vị độ trễ trong điều kiện tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: So sánh mô hình phản ứng, luồng nền tảng và luồng ảo có cùng tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2524,7 +2524,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Kiểm chứng tối ưu bằng đo đạc và giới hạn tài nguyên thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
   childs:
   - slug: application-design-001
     title: Biểu diễn trường hợp sử dụng bằng chuỗi xử lý có ranh giới rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2545,7 +2545,7 @@ menu:
     summary: ''
   - slug: application-design-002
     title: Giữ logic nghiệp vụ dễ kiểm thử bằng hàm thuần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
     summary: ''
   - slug: application-design-003
     title: Thiết kế API trả về kiểu phản ứng thay vì tự đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2563,7 +2563,7 @@ menu:
     summary: ''
   - slug: application-design-004
     title: Biểu diễn dữ liệu thiếu và lỗi nghiệp vụ trong hợp đồng API
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2572,7 +2572,7 @@ menu:
     summary: ''
   - slug: application-design-005
     title: Lựa chọn toán tử theo thứ tự, số lượng, thời gian và nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
     summary: ''
   - slug: application-design-006
     title: Phân tách tác dụng phụ, tài nguyên và điều phối thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: application-design-007
     title: Thiết kế hủy, thời gian chờ và thử lại ngay từ đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: application-design-008
     title: Chia chuỗi dài thành phép biến đổi có tên và mục đích rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: application-design-009
     title: Ranh giới giữa mã phản ứng và mã chặn trong hệ thống hỗn hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2617,7 +2617,7 @@ menu:
     summary: ''
   - slug: application-design-010
     title: Chuyển đổi từng phần và tiêu chí đánh giá tính phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
   childs:
   - slug: common-pitfalls-001
     title: Quên đăng ký hoặc bỏ qua chuỗi mới do toán tử trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2638,7 +2638,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-002
     title: Gọi subscribe lồng nhau làm tách vòng đời và đường truyền lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-003
     title: Gọi block trên vòng lặp sự kiện hoặc trong chuỗi đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-004
     title: Dùng map cho tác vụ trả về Publisher và tạo luồng lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2665,7 +2665,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-005
     title: Dùng flatMap khi nghiệp vụ cần thứ tự nghiêm ngặt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2674,7 +2674,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-006
     title: Tác dụng phụ lặp lại do nhiều đăng ký, retry hoặc repeat
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2683,7 +2683,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-007
     title: Lưu trạng thái khả biến dùng chung giữa nhiều đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2692,7 +2692,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-008
     title: Gom nguồn vô hạn hoặc tạo bộ đệm không có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2701,7 +2701,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-009
     title: Đặt phục hồi lỗi sai vị trí làm kết thúc toàn bộ nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-010
     title: Cache hoặc share ngoài ý muốn làm thay đổi vòng đời và dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-011
     title: Nhầm hoàn thành rỗng, Mono<Void> và giá trị cần để phối hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: common-pitfalls-012
     title: Bắt mọi lỗi hoặc tiếp tục sau lỗi khiến mất dữ liệu âm thầm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
   childs:
   - slug: hands-on-exercises-001
     title: Mô phỏng Publisher và Subscriber có yêu cầu dữ liệu theo lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-002
     title: Tìm kiếm gợi ý với debounce, loại trùng và switchMap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-003
     title: Tổng hợp nhiều API với giới hạn đồng thời và thời gian chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2767,7 +2767,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-004
     title: Đọc dữ liệu theo lô và xử lý một bên tiêu thụ chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-005
     title: Xây dựng luồng sự kiện dùng chung có phát lại giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-006
     title: Khôi phục lời gọi dịch vụ bằng retry có giới hạn và nguồn dự phòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-007
     title: Theo dõi trạng thái đơn hàng bằng sự kiện và scan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-008
     title: Xây dựng API WebFlux phát dữ liệu qua Server-Sent Events
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-009
     title: Thực hiện giao dịch dữ liệu phản ứng và kiểm thử đường lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-010
     title: Đo tải, phát hiện lời gọi chặn và so sánh các mô hình thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-011
     title: Thiết kế hủy tác vụ và xác minh tài nguyên được giải phóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2839,7 +2839,7 @@ menu:
     summary: ''
   - slug: hands-on-exercises-012
     title: Đọc yêu cầu thực tế và giải thích lựa chọn toán tử, vòng đời, giới hạn tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

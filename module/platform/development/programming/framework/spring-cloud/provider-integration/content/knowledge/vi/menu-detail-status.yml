@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Tích hợp nhà cung cấp đám mây là gì và giải quyết vấn đề nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vị trí của tích hợp nhà cung cấp trong hệ sinh thái Spring Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Phân biệt nhà cung cấp, dịch vụ được quản lý, SDK, starter và adapter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Bản đồ AWS, Azure, Google Cloud, OCI và Alibaba Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Từ yêu cầu nghiệp vụ đến lựa chọn dịch vụ và cách tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Kiến thức cần có về Spring Boot, cấu hình, HTTP và xử lý bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Lộ trình học từ kết nối đầu tiên đến tích hợp có thể vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: cloud-platforms-001
     title: Tài khoản, subscription, project, tenancy và ranh giới tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-002
     title: Region, availability zone, endpoint và vị trí lưu trữ dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-003
     title: Phân biệt API quản lý tài nguyên và API truy cập dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-004
     title: Mô hình trách nhiệm chia sẻ giữa ứng dụng và nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-005
     title: Tính nhất quán, độ trễ và sự cố từng phần khi gọi dịch vụ từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-006
     title: Hạn ngạch, giới hạn tốc độ và mô hình tính phí theo mức sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: cloud-platforms-007
     title: Phân tách tài nguyên phát triển, kiểm thử và sản xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -136,7 +136,7 @@ menu:
   childs:
   - slug: integration-architecture-001
     title: Luồng xử lý từ mã nghiệp vụ qua Spring đến SDK và dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
     summary: ''
   - slug: integration-architecture-002
     title: Auto-configuration, điều kiện tạo bean và cơ chế tùy chỉnh client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: integration-architecture-003
     title: Chọn starter, template, repository hay SDK trực tiếp theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: integration-architecture-004
     title: Phân biệt client đồng bộ, bất đồng bộ và mô hình reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: integration-architecture-005
     title: Đặt giao diện nghiệp vụ và adapter nhà cung cấp ở ranh giới phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: integration-architecture-006
     title: Vòng đời client, khả năng dùng chung và đóng tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: integration-architecture-007
     title: Chuyển đổi dữ liệu, ngoại lệ và thông tin yêu cầu tại ranh giới tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: integration-architecture-008
     title: Giới hạn của tính di động giữa các nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -211,7 +211,7 @@ menu:
   childs:
   - slug: project-bootstrap-001
     title: Chọn tổ hợp Java, Spring Boot, Spring Cloud và thư viện nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-002
     title: Đọc ma trận tương thích và xác định đơn vị bảo trì từng dự án
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-003
     title: Quản lý phiên bản bằng BOM trong Maven và Gradle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-004
     title: Phân tích dependency tree và xử lý xung đột SDK, HTTP client, Netty
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-005
     title: Thêm đúng starter và giới hạn các tích hợp được kích hoạt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-006
     title: Tổ chức cấu hình và adapter theo từng môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-007
     title: Thực hiện kết nối tối thiểu và xác minh danh tính đang sử dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: project-bootstrap-008
     title: Ghi lại phiên bản, tài nguyên và điều kiện chạy ví dụ có thể tái lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -286,7 +286,7 @@ menu:
   childs:
   - slug: application-configuration-001
     title: Binding cấu hình dịch vụ bằng ConfigurationProperties
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -295,7 +295,7 @@ menu:
     summary: ''
   - slug: application-configuration-002
     title: Thứ tự ưu tiên giữa tệp cấu hình, biến môi trường và nguồn từ xa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
     summary: ''
   - slug: application-configuration-003
     title: Nạp cấu hình bằng Config Data và spring.config.import khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: application-configuration-004
     title: Phân biệt tham số cấu hình, bí mật và định danh tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: application-configuration-005
     title: Chọn hành vi khi nguồn cấu hình bắt buộc hoặc tùy chọn bị lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: application-configuration-006
     title: Kiểm tra giá trị cấu hình và phát hiện sai endpoint từ lúc khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: application-configuration-007
     title: Tách cấu hình toàn cục với cấu hình riêng của từng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: application-configuration-008
     title: Nạp lại cấu hình, xoay vòng bí mật và giới hạn cập nhật bean đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -361,7 +361,7 @@ menu:
   childs:
   - slug: identity-access-001
     title: Phân biệt xác thực ứng dụng và phân quyền truy cập tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -370,7 +370,7 @@ menu:
     summary: ''
   - slug: identity-access-002
     title: Chuỗi tìm thông tin xác thực và thứ tự lựa chọn danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -379,7 +379,7 @@ menu:
     summary: ''
   - slug: identity-access-003
     title: Danh tính người phát triển tại máy cục bộ và danh tính ứng dụng khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
     summary: ''
   - slug: identity-access-004
     title: Danh tính được quản lý, vai trò và token ngắn hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
     summary: ''
   - slug: identity-access-005
     title: Liên kết danh tính OIDC cho CI/CD và workload identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: identity-access-006
     title: Thiết kế quyền tối thiểu theo hành động và phạm vi tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: identity-access-007
     title: Truy cập khác tài khoản, subscription hoặc project
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: identity-access-008
     title: Hết hạn token, làm mới thông tin xác thực và thời gian hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: identity-access-009
     title: Giữ khóa bí mật ngoài mã nguồn, ảnh container và nhật ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -445,7 +445,7 @@ menu:
   childs:
   - slug: aws-platform-001
     title: Spring Cloud AWS của AWSpring và ranh giới với AWS SDK for Java
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -454,7 +454,7 @@ menu:
     summary: ''
   - slug: aws-platform-002
     title: Chọn BOM, starter và thế hệ AWS SDK phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -463,7 +463,7 @@ menu:
     summary: ''
   - slug: aws-platform-003
     title: DefaultCredentialsProvider và chuỗi tìm region
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -472,7 +472,7 @@ menu:
     summary: ''
   - slug: aws-platform-004
     title: Hồ sơ AWS CLI, AWS IAM Identity Center và phát triển cục bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
     summary: ''
   - slug: aws-platform-005
     title: Vai trò IAM cho EC2, ECS và EKS theo môi trường triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: aws-platform-006
     title: STS AssumeRole và truy cập tài nguyên khác tài khoản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: aws-platform-007
     title: Tùy chỉnh client theo dịch vụ, HTTP transport và endpoint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: aws-platform-008
     title: Thiết lập kết nối AWS giả lập bằng LocalStack
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -520,7 +520,7 @@ menu:
   childs:
   - slug: aws-configuration-001
     title: Chọn Parameter Store hay Secrets Manager theo loại dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -529,7 +529,7 @@ menu:
     summary: ''
   - slug: aws-configuration-002
     title: Nạp Parameter Store bằng Config Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -538,7 +538,7 @@ menu:
     summary: ''
   - slug: aws-configuration-003
     title: Nạp Secrets Manager bằng Config Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -547,7 +547,7 @@ menu:
     summary: ''
   - slug: aws-configuration-004
     title: Ánh xạ đường dẫn, tiền tố và khóa bí mật vào thuộc tính Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
     summary: ''
   - slug: aws-configuration-005
     title: Phân quyền đọc tham số, bí mật và khóa KMS liên quan
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: aws-configuration-006
     title: Nguồn cấu hình bắt buộc, optional và lỗi lúc khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -574,7 +574,7 @@ menu:
     summary: ''
   - slug: aws-configuration-007
     title: Nạp lại cấu hình và xoay vòng bí mật theo khả năng phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
     summary: ''
   - slug: aws-configuration-008
     title: Kiểm thử quyền truy cập và xử lý cấu hình bị thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -595,7 +595,7 @@ menu:
   childs:
   - slug: amazon-s3-001
     title: Bucket, object key, metadata và mô hình truy cập đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -604,7 +604,7 @@ menu:
     summary: ''
   - slug: amazon-s3-002
     title: Cấu hình S3 client, S3Template và Spring Resource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -613,7 +613,7 @@ menu:
     summary: ''
   - slug: amazon-s3-003
     title: Thao tác tải lên, tải xuống, liệt kê và xóa đối tượng S3
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -622,7 +622,7 @@ menu:
     summary: ''
   - slug: amazon-s3-004
     title: Truyền dữ liệu dạng luồng và tải lên nhiều phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -631,7 +631,7 @@ menu:
     summary: ''
   - slug: amazon-s3-005
     title: Tạo URL ký sẵn và giới hạn quyền truy cập theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -640,7 +640,7 @@ menu:
     summary: ''
   - slug: amazon-s3-006
     title: Phân trang, điều kiện ghi và kiểm soát ghi đè
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
     summary: ''
   - slug: amazon-s3-007
     title: Mã hóa, versioning và vòng đời đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: amazon-s3-008
     title: S3-compatible endpoint, path-style access và khác biệt với AWS S3
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: amazon-s3-009
     title: Sự kiện S3 và phối hợp xử lý tệp qua hàng đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -679,7 +679,7 @@ menu:
   childs:
   - slug: amazon-sqs-001
     title: Standard queue, FIFO queue và phạm vi bảo đảm thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -688,7 +688,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-002
     title: Gửi và nhận thông điệp bằng SqsTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -697,7 +697,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-003
     title: Xử lý thông điệp bằng SqsListener và listener container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -706,7 +706,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-004
     title: Ánh xạ payload, header và chuyển đổi JSON
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -715,7 +715,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-005
     title: Visibility timeout, long polling và gia hạn thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -724,7 +724,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-006
     title: Chế độ xác nhận và thời điểm xóa thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -733,7 +733,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-007
     title: Xử lý trùng lặp, message group và deduplication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -742,7 +742,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-008
     title: Retry, dead-letter queue và phát lại thông điệp lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
     summary: ''
   - slug: amazon-sqs-009
     title: Batch, mức song song, backpressure và dừng listener an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -763,7 +763,7 @@ menu:
   childs:
   - slug: amazon-sns-ses-001
     title: Topic, subscription và mô hình phân phối thông báo SNS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -772,7 +772,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-002
     title: Phát thông báo bằng SnsTemplate và thuộc tính thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -781,7 +781,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-003
     title: Lọc subscription và phân phối SNS đến nhiều SQS queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -790,7 +790,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-004
     title: Xác minh chữ ký, xác nhận subscription và xử lý thông báo HTTP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -799,7 +799,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-005
     title: Phân quyền publish, subscribe và phối hợp topic policy với queue policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -808,7 +808,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-006
     title: Tích hợp Amazon SES với cơ chế gửi thư của Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -817,7 +817,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-007
     title: Danh tính gửi thư, sandbox và xử lý lỗi chuyển phát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
     summary: ''
   - slug: amazon-sns-ses-008
     title: Chọn SNS, SQS hay SES theo mục đích giao tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -838,7 +838,7 @@ menu:
   childs:
   - slug: aws-data-services-001
     title: Tích hợp DynamoDB bằng starter và DynamoDbTemplate khi phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -847,7 +847,7 @@ menu:
     summary: ''
   - slug: aws-data-services-002
     title: Thiết kế partition key, sort key và ánh xạ đối tượng DynamoDB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -856,7 +856,7 @@ menu:
     summary: ''
   - slug: aws-data-services-003
     title: Đọc ghi dữ liệu, truy vấn chỉ mục và phân trang
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -865,7 +865,7 @@ menu:
     summary: ''
   - slug: aws-data-services-004
     title: Phân biệt Query và Scan khi thiết kế truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -874,7 +874,7 @@ menu:
     summary: ''
   - slug: aws-data-services-005
     title: Ghi có điều kiện, khóa lạc quan và lựa chọn tính nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -883,7 +883,7 @@ menu:
     summary: ''
   - slug: aws-data-services-006
     title: Giới hạn giao dịch, dung lượng và xử lý throttling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -892,7 +892,7 @@ menu:
     summary: ''
   - slug: aws-data-services-007
     title: Kết nối RDS qua JDBC và quản lý pool kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
     summary: ''
   - slug: aws-data-services-008
     title: Xác thực RDS bằng IAM khi được hỗ trợ và làm mới kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: aws-data-services-009
     title: Tích hợp dịch vụ AWS chưa có starter bằng SDK trong adapter riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -922,7 +922,7 @@ menu:
   childs:
   - slug: azure-platform-001
     title: Spring Cloud Azure, Azure SDK for Java và phạm vi các starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -931,7 +931,7 @@ menu:
     summary: ''
   - slug: azure-platform-002
     title: BOM Azure và ma trận tương thích Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -940,7 +940,7 @@ menu:
     summary: ''
   - slug: azure-platform-003
     title: Subscription, resource group, tenant và endpoint dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -949,7 +949,7 @@ menu:
     summary: ''
   - slug: azure-platform-004
     title: DefaultAzureCredential và lựa chọn danh tính trong từng môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -958,7 +958,7 @@ menu:
     summary: ''
   - slug: azure-platform-005
     title: Azure CLI, managed identity và workload identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -967,7 +967,7 @@ menu:
     summary: ''
   - slug: azure-platform-006
     title: Phân biệt quyền quản lý tài nguyên và quyền truy cập dữ liệu bằng Azure RBAC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -976,7 +976,7 @@ menu:
     summary: ''
   - slug: azure-platform-007
     title: Tùy chỉnh Azure client builder, HTTP pipeline và proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -985,7 +985,7 @@ menu:
     summary: ''
   - slug: azure-platform-008
     title: Phân biệt tích hợp thư viện Azure với nền tảng lưu trú ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -997,7 +997,7 @@ menu:
   childs:
   - slug: azure-configuration-001
     title: Phân biệt Azure App Configuration và Azure Key Vault
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1006,7 +1006,7 @@ menu:
     summary: ''
   - slug: azure-configuration-002
     title: Nạp App Configuration vào môi trường cấu hình Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1015,7 +1015,7 @@ menu:
     summary: ''
   - slug: azure-configuration-003
     title: Key, label, bộ lọc và ánh xạ cấu hình theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1024,7 +1024,7 @@ menu:
     summary: ''
   - slug: azure-configuration-004
     title: Cờ tính năng và ranh giới với cấu hình thông thường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1033,7 +1033,7 @@ menu:
     summary: ''
   - slug: azure-configuration-005
     title: Tích hợp Key Vault Secrets và ánh xạ bí mật vào thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1042,7 +1042,7 @@ menu:
     summary: ''
   - slug: azure-configuration-006
     title: Tham chiếu Key Vault trong App Configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1051,7 +1051,7 @@ menu:
     summary: ''
   - slug: azure-configuration-007
     title: Làm mới cấu hình, bộ nhớ đệm và xoay vòng bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1060,7 +1060,7 @@ menu:
     summary: ''
   - slug: azure-configuration-008
     title: Quyền truy cập, hành vi khi nguồn từ xa lỗi và kiểm thử cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1072,7 +1072,7 @@ menu:
   childs:
   - slug: azure-storage-001
     title: Phân biệt Blob Storage, File Share và Storage Queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1081,7 +1081,7 @@ menu:
     summary: ''
   - slug: azure-storage-002
     title: Cấu hình Blob client và thao tác container, blob
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1090,7 +1090,7 @@ menu:
     summary: ''
   - slug: azure-storage-003
     title: Tải lên, tải xuống và xử lý tệp lớn theo dạng luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1099,7 +1099,7 @@ menu:
     summary: ''
   - slug: azure-storage-004
     title: Managed identity, SAS và quyền truy cập Storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1108,7 +1108,7 @@ menu:
     summary: ''
   - slug: azure-storage-005
     title: ETag, điều kiện ghi và kiểm soát cập nhật đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1117,7 +1117,7 @@ menu:
     summary: ''
   - slug: azure-storage-006
     title: Metadata, phiên bản, tầng lưu trữ và vòng đời dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1126,7 +1126,7 @@ menu:
     summary: ''
   - slug: azure-storage-007
     title: Tích hợp File Share theo khả năng starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1135,7 +1135,7 @@ menu:
     summary: ''
   - slug: azure-storage-008
     title: Gửi nhận Storage Queue và giới hạn so với Service Bus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1144,7 +1144,7 @@ menu:
     summary: ''
   - slug: azure-storage-009
     title: Dùng Azurite để kiểm thử các khả năng được giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1156,7 +1156,7 @@ menu:
   childs:
   - slug: azure-service-bus-001
     title: Queue, topic, subscription và mô hình xử lý thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1165,7 +1165,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-002
     title: Tạo sender, receiver và processor qua Spring Cloud Azure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1174,7 +1174,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-003
     title: Chuyển đổi payload và truyền thuộc tính thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1183,7 +1183,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-004
     title: Peek-lock, complete, abandon, defer và dead-letter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1192,7 +1192,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-005
     title: Gia hạn khóa và xử lý tác vụ kéo dài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1201,7 +1201,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-006
     title: Sessions, thứ tự thông điệp và phát hiện trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1210,7 +1210,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-007
     title: Retry, số lần giao lại và phát lại dead-letter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1219,7 +1219,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-008
     title: JMS, Spring Integration và Stream binder khi phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1228,7 +1228,7 @@ menu:
     summary: ''
   - slug: azure-service-bus-009
     title: Giới hạn giao dịch và ranh giới với giao dịch cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1240,7 +1240,7 @@ menu:
   childs:
   - slug: azure-events-001
     title: Phân biệt Event Hubs, Event Grid và Service Bus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1249,7 +1249,7 @@ menu:
     summary: ''
   - slug: azure-events-002
     title: Partition, consumer group và thứ tự trong Event Hubs
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1258,7 +1258,7 @@ menu:
     summary: ''
   - slug: azure-events-003
     title: Gửi sự kiện và vận hành Event Hubs processor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1267,7 +1267,7 @@ menu:
     summary: ''
   - slug: azure-events-004
     title: Checkpoint, quyền sở hữu partition và khôi phục consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1276,7 +1276,7 @@ menu:
     summary: ''
   - slug: azure-events-005
     title: Tích hợp Event Hubs với Spring Integration hoặc Stream binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1285,7 +1285,7 @@ menu:
     summary: ''
   - slug: azure-events-006
     title: Điều tiết tốc độ nhận và xử lý lại sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1294,7 +1294,7 @@ menu:
     summary: ''
   - slug: azure-events-007
     title: Phát và nhận Event Grid theo khả năng SDK hoặc starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1303,7 +1303,7 @@ menu:
     summary: ''
   - slug: azure-events-008
     title: Xác minh điểm nhận sự kiện và xử lý sự kiện trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
   childs:
   - slug: azure-data-services-001
     title: Tích hợp Azure Cosmos DB bằng Spring Data Cosmos
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1324,7 +1324,7 @@ menu:
     summary: ''
   - slug: azure-data-services-002
     title: Partition key, ánh xạ tài liệu và repository
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1333,7 +1333,7 @@ menu:
     summary: ''
   - slug: azure-data-services-003
     title: Truy vấn, phân trang và kiểm soát request units
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1342,7 +1342,7 @@ menu:
     summary: ''
   - slug: azure-data-services-004
     title: ETag, optimistic locking và lựa chọn mức nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1351,7 +1351,7 @@ menu:
     summary: ''
   - slug: azure-data-services-005
     title: Ranh giới giao dịch và cách xử lý cập nhật nhiều partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1360,7 +1360,7 @@ menu:
     summary: ''
   - slug: azure-data-services-006
     title: Kết nối Azure Database for MySQL hoặc PostgreSQL qua JDBC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1369,7 +1369,7 @@ menu:
     summary: ''
   - slug: azure-data-services-007
     title: Xác thực Microsoft Entra cho cơ sở dữ liệu khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1378,7 +1378,7 @@ menu:
     summary: ''
   - slug: azure-data-services-008
     title: Tích hợp Redis qua Spring Data và kiểm tra vòng đời dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1387,7 +1387,7 @@ menu:
     summary: ''
   - slug: azure-data-services-009
     title: Chọn API dữ liệu đồng bộ hoặc reactive theo luồng xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1399,7 +1399,7 @@ menu:
   childs:
   - slug: microsoft-entra-id-001
     title: Phân biệt danh tính ứng dụng gọi Azure và danh tính người dùng đăng nhập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1408,7 +1408,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-002
     title: App registration, tenant, application ID và đối tượng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1417,7 +1417,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-003
     title: Tích hợp đăng nhập OIDC với Spring Security
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1426,7 +1426,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-004
     title: Bảo vệ API bằng OAuth2 resource server
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1435,7 +1435,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-005
     title: Scope, application role và kiểm tra quyền trong ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1444,7 +1444,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-006
     title: Lấy token gọi API phía sau theo luồng phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1453,7 +1453,7 @@ menu:
     summary: ''
   - slug: microsoft-entra-id-007
     title: Xác minh issuer, audience và ranh giới tin cậy nhiều tenant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
   childs:
   - slug: google-cloud-platform-001
     title: Spring Cloud GCP và tên dự án Spring Framework on Google Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-002
     title: BOM, starter và ma trận tương thích Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-003
     title: Project ID, region, API cần bật và phạm vi tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-004
     title: Application Default Credentials và thứ tự chọn danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1501,7 +1501,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-005
     title: Phân biệt đăng nhập gcloud với thông tin xác thực ADC
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1510,7 +1510,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-006
     title: Service account, impersonation và quyền IAM tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1519,7 +1519,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-007
     title: Workload Identity Federation và danh tính ứng dụng khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1528,7 +1528,7 @@ menu:
     summary: ''
   - slug: google-cloud-platform-008
     title: Tùy chỉnh client, credentials provider và project ID theo dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
   childs:
   - slug: google-cloud-configuration-001
     title: Nạp Secret Manager vào cấu hình Spring theo phiên bản thư viện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-002
     title: Tham chiếu tên bí mật, project và phiên bản bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-003
     title: Chọn bí mật bắt buộc hoặc tùy chọn trong Config Data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-004
     title: Phân quyền đọc bí mật và truy cập khác project
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-005
     title: Phiên bản bí mật, bộ nhớ đệm và cập nhật ứng dụng sau xoay vòng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1585,7 +1585,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-006
     title: Phân biệt Secret Manager, biến môi trường và tệp cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1594,7 +1594,7 @@ menu:
     summary: ''
   - slug: google-cloud-configuration-007
     title: Xử lý thiếu quyền, API chưa bật và bí mật không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
   childs:
   - slug: google-cloud-storage-001
     title: Bucket, object name, generation và metadata trên Google Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-002
     title: Tích hợp Cloud Storage bằng client và Spring Resource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-003
     title: Thao tác tải lên, tải xuống, liệt kê và xóa đối tượng Google Cloud Storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-004
     title: Truyền dữ liệu lớn và lựa chọn cách tải có thể tiếp tục
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-005
     title: Signed URL và quyền của danh tính thực hiện ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-006
     title: Generation precondition và ngăn ghi đè ngoài ý muốn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-007
     title: Mã hóa, versioning, retention và vòng đời đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1669,7 +1669,7 @@ menu:
     summary: ''
   - slug: google-cloud-storage-008
     title: Kết nối Storage với Spring Integration và thông báo thay đổi đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
   childs:
   - slug: google-cloud-pubsub-001
     title: Topic, subscription, publisher và subscriber trong Pub/Sub
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-002
     title: Gửi nhận thông điệp bằng PubSubTemplate
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-003
     title: Chuyển đổi payload, thuộc tính và ordering key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-004
     title: Ack, nack, ack deadline và gia hạn thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-005
     title: Điều tiết luồng nhận, batching và mức song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-006
     title: Retry policy, dead-letter topic và phát lại thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-007
     title: Phạm vi hỗ trợ exactly-once và tính lũy đẳng của xử lý nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-008
     title: Push subscription, xác minh token và bảo vệ điểm nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-009
     title: Tích hợp Spring Integration và Spring Cloud Stream theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: google-cloud-pubsub-010
     title: Pub/Sub emulator và khác biệt với dịch vụ thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
   childs:
   - slug: google-cloud-data-services-001
     title: Kết nối Cloud SQL bằng JDBC và Cloud SQL Connector
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-002
     title: Pool kết nối, private IP và IAM database authentication khi hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-003
     title: Ánh xạ dữ liệu và truy vấn với Spring Data Spanner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-004
     title: Giao dịch Spanner và lựa chọn cách đọc dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-005
     title: Phân biệt Datastore và Firestore khi chọn mô hình lưu trữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-006
     title: Repository Firestore reactive và truy cập Datastore theo thư viện tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-007
     title: Tích hợp BigQuery bằng client, template và tải dữ liệu theo lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-008
     title: Phân biệt cơ sở dữ liệu phục vụ giao dịch và kho phân tích BigQuery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: google-cloud-data-services-009
     title: Kiểm soát chi phí truy vấn, hạn ngạch và tài nguyên kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
   childs:
   - slug: oracle-cloud-001
     title: Spring Cloud Oracle, Spring Cloud OCI và ranh giới các dự án con
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-002
     title: Chọn phiên bản tương thích trước khi thêm OCI starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-003
     title: Tenancy, compartment, OCID, region và OCI IAM policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-004
     title: Xác thực bằng tệp cấu hình, instance principal hoặc resource principal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-005
     title: Tích hợp OCI Object Storage với tài nguyên Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-006
     title: Tích hợp OCI Vault và nguồn cấu hình bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-007
     title: Phân biệt OCI Queue, Streaming và Notifications
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-008
     title: Phân biệt quản lý Autonomous Database và kết nối JDBC đến cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-009
     title: Tích hợp Logging, Email Delivery và gọi Functions theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1939,7 +1939,7 @@ menu:
     summary: ''
   - slug: oracle-cloud-010
     title: Dùng OCI Java SDK cho chức năng ngoài phạm vi starter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
   childs:
   - slug: alibaba-cloud-001
     title: Phân biệt Spring Cloud Alibaba và starter dịch vụ Alibaba Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-002
     title: Kiểm tra đơn vị bảo trì, BOM và khả năng tương thích hiện tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-003
     title: Region, endpoint, RAM role và thông tin xác thực STS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-004
     title: Tích hợp Object Storage Service qua SDK hoặc starter còn phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-005
     title: Tích hợp SMS với mẫu thông báo và xử lý kết quả gửi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-006
     title: Kết nối RDS hoặc Redis qua thư viện dữ liệu tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-007
     title: Ranh giới với Nacos, Sentinel, Seata và RocketMQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-008
     title: Thay thế starter cũ khi không có phiên bản tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: alibaba-cloud-009
     title: Bọc SDK Alibaba Cloud trong adapter và kiểm thử hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
   childs:
   - slug: ecosystem-connectivity-001
     title: Ánh xạ tài nguyên đám mây vào Spring Resource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-002
     title: Chọn Spring Integration cho luồng tích hợp hướng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-003
     title: Chọn Spring Cloud Stream binder và nhận biết khác biệt ngữ nghĩa nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-004
     title: Ranh giới giữa cấu hình nhà cung cấp và Spring Cloud Config
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-005
     title: Service binding và ánh xạ thông tin kết nối do nền tảng cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-006
     title: Ranh giới với Service Discovery, Kubernetes và Service Broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-007
     title: Ranh giới giữa gọi dịch vụ serverless và triển khai Spring Cloud Function
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: ecosystem-connectivity-008
     title: Phối hợp lưu trữ đối tượng, hàng đợi và cơ sở dữ liệu trong một luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
   childs:
   - slug: reliability-001
     title: Đặt thời hạn toàn thao tác và timeout cho từng lần gọi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: reliability-002
     title: Phân công retry giữa SDK, thư viện Spring và mã nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: reliability-003
     title: Exponential backoff, jitter và xử lý giới hạn tốc độ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: reliability-004
     title: Thiết kế thao tác lũy đẳng và khóa chống xử lý trùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: reliability-005
     title: Phân biệt bảo đảm giao nhận với bảo đảm tác động nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: reliability-006
     title: Phạm vi thứ tự thông điệp và xử lý sự kiện đến muộn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: reliability-007
     title: Dead-letter, phát lại có kiểm soát và khôi phục sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: reliability-008
     title: Transactional outbox và bù trừ khi không có giao dịch xuyên dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: reliability-009
     title: Circuit breaker, giới hạn đồng thời và suy giảm chức năng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: reliability-010
     title: Dừng ứng dụng an toàn khi còn thông điệp hoặc yêu cầu đang xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
   childs:
   - slug: data-protection-001
     title: TLS, xác minh chứng chỉ và kết nối qua proxy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: data-protection-002
     title: Private endpoint, DNS riêng và đường mạng tới dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: data-protection-003
     title: Mã hóa phía máy chủ, phía ứng dụng và quản lý khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: data-protection-004
     title: Phân loại dữ liệu, giới hạn quyền đọc và che thông tin nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
     summary: ''
   - slug: data-protection-005
     title: Giới hạn thời gian, phạm vi và quyền của URL hoặc token chia sẻ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: data-protection-006
     title: Kiểm tra chữ ký webhook, token sự kiện và chống phát lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: data-protection-007
     title: Xoay vòng khóa, thu hồi quyền và ứng phó khi lộ thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: data-protection-008
     title: Lưu vết truy cập, vị trí dữ liệu và chính sách lưu giữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
   childs:
   - slug: observability-001
     title: Health indicator, readiness và liveness cho phụ thuộc đám mây
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Đo độ trễ, tỷ lệ lỗi, throttling và số lần retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Theo dõi tuổi thông điệp, lượng tồn đọng và dead-letter và thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Liên kết trace qua HTTP, hàng đợi và xử lý nền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Nhật ký có cấu trúc, correlation ID và request ID của nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Tích hợp CloudWatch, Azure Monitor hoặc Google Cloud Observability theo thư viện phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Giới hạn số giá trị nhãn metric và chi phí dữ liệu quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Thiết kế cảnh báo gắn với chất lượng phục vụ và cách xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
   childs:
   - slug: integration-testing-001
     title: Phân biệt unit test, kiểm thử hợp đồng và kiểm thử trên dịch vụ thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: integration-testing-002
     title: Mock giao diện nghiệp vụ và giả lập client ở ranh giới thích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: integration-testing-003
     title: Dùng Testcontainers để quản lý dịch vụ hoặc môi trường giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: integration-testing-004
     title: LocalStack cho những API AWS được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: integration-testing-005
     title: Azurite cho Storage và giới hạn các dịch vụ Azure được giả lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: integration-testing-006
     title: Emulator Google Cloud và cấu hình endpoint theo từng dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: integration-testing-007
     title: Chờ điều kiện bất đồng bộ và kiểm thử timeout có tính xác định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: integration-testing-008
     title: Kiểm thử thiếu quyền, token hết hạn, throttling và đứt kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: integration-testing-009
     title: Kiểm thử gửi trùng, xử lý lại và tương thích schema thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: integration-testing-010
     title: Tạo tài nguyên kiểm thử biệt lập và dọn dẹp sau mỗi lần chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
   childs:
   - slug: application-deployment-001
     title: Tách việc cấp phát tài nguyên khỏi thao tác xử lý nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: application-deployment-002
     title: Mô tả hạ tầng bằng mã và truyền đầu ra cấu hình cho ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: application-deployment-003
     title: Đóng gói JAR hoặc container và kiểm tra điều kiện môi trường chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: application-deployment-004
     title: Cấp danh tính cho ứng dụng trên máy ảo, container và Kubernetes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: application-deployment-005
     title: Cấp quyền CI/CD bằng liên kết danh tính thay cho khóa dài hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: application-deployment-006
     title: Cấu hình mạng, DNS, egress và endpoint riêng khi triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: application-deployment-007
     title: Thứ tự khởi tạo tài nguyên, cấp quyền và đưa ứng dụng vào phục vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2509,7 +2509,7 @@ menu:
     summary: ''
   - slug: application-deployment-008
     title: Triển khai thử, kiểm tra kết nối và rollback thay đổi tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2518,7 +2518,7 @@ menu:
     summary: ''
   - slug: application-deployment-009
     title: Đóng listener và client đúng vòng đời khi ứng dụng dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
   childs:
   - slug: performance-cost-001
     title: Tái sử dụng client, connection pool và HTTP transport
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: performance-cost-002
     title: Giới hạn thread, kết nối và bộ đệm trong luồng bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: performance-cost-003
     title: Batching, prefetch và điều tiết tốc độ theo tài nguyên xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: performance-cost-004
     title: Truyền dữ liệu dạng luồng để giới hạn bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: performance-cost-005
     title: Phân trang, bộ nhớ đệm và giảm số lần gọi dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: performance-cost-006
     title: Lựa chọn region và đánh giá độ trễ, lưu lượng liên vùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: performance-cost-007
     title: Ước lượng chi phí theo thao tác, dung lượng và truyền dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2593,7 +2593,7 @@ menu:
     summary: ''
   - slug: performance-cost-008
     title: Giám sát hạn ngạch, đặt ngân sách và phát hiện tăng chi phí
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2602,7 +2602,7 @@ menu:
     summary: ''
   - slug: performance-cost-009
     title: Đo tải bằng dịch vụ thật trước khi điều chỉnh cấu hình sản xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
   childs:
   - slug: multicloud-001
     title: Phân biệt dùng nhiều nhà cung cấp và khả năng chuyển đổi nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: multicloud-002
     title: So sánh mô hình lưu trữ đối tượng, thông điệp, bí mật và dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: multicloud-003
     title: Định nghĩa hợp đồng theo nhu cầu nghiệp vụ thay vì tên SDK
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: multicloud-004
     title: Lựa chọn cấu hình và adapter bằng profile hoặc điều kiện bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: multicloud-005
     title: Bảo toàn tính năng riêng khi một abstraction chung không đủ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: multicloud-006
     title: Chuyển dữ liệu, danh tính, endpoint và quy trình vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: multicloud-007
     title: Kiểm thử cùng hợp đồng trên nhiều adapter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: multicloud-008
     title: Đánh giá chi phí di chuyển, độ nhất quán và kế hoạch chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không tạo được bean do điều kiện auto-configuration hoặc dependency thiếu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Không tìm thấy danh tính hoặc chọn nhầm tài khoản, tenant, project
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Phân biệt lỗi xác thực, thiếu quyền và tài nguyên không tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Sai region, endpoint, DNS hoặc kết nối private network
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Lỗi timeout, TLS, proxy và cạn connection pool
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Nguồn cấu hình không nạp hoặc bí mật xoay vòng chưa có hiệu lực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Thông điệp không được nhận, không được xác nhận hoặc bị xử lý lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Throttling, vượt hạn ngạch và điểm nóng trên partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Lỗi tương thích SDK, classpath, Netty hoặc mô hình blocking/reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Khoanh vùng bằng request ID và thu thập bằng chứng đã che bí mật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2782,7 +2782,7 @@ menu:
   childs:
   - slug: integration-upgrades-001
     title: Theo dõi vòng đời Spring Boot, Spring Cloud và thư viện nhà cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-002
     title: Đọc release note, migration guide và thay đổi cấu hình trước nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-003
     title: Phân biệt thay đổi artifact, package và API công khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-004
     title: Chuyển từ bootstrap hoặc cơ chế cấu hình cũ khi phiên bản yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-005
     title: Thay thế thư viện hoặc connector đã ngừng bảo trì
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-006
     title: Xác minh thay đổi mặc định của danh tính, retry và listener
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-007
     title: Kiểm thử hồi quy hành vi và tương thích dữ liệu đang lưu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: integration-upgrades-008
     title: Nâng cấp theo giai đoạn và chuẩn bị phương án quay lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2857,7 +2857,7 @@ menu:
   childs:
   - slug: hands-on-integration-001
     title: Kết nối đầu tiên tới một dịch vụ bằng danh tính có quyền tối thiểu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2866,7 +2866,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-002
     title: Xây dựng kho tài liệu với lưu trữ đối tượng và URL truy cập tạm thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2875,7 +2875,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-003
     title: Xử lý tệp bất đồng bộ qua sự kiện, hàng đợi và tiến trình xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2884,7 +2884,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-004
     title: Nạp cấu hình và xoay vòng bí mật mà không ghi khóa vào mã
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2893,7 +2893,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-005
     title: Phối hợp cơ sở dữ liệu với hàng đợi bằng outbox và xử lý lũy đẳng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2902,7 +2902,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-006
     title: Mô phỏng lỗi quyền, timeout, thông điệp trùng và phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-007
     title: Thay adapter nhà cung cấp và kiểm thử lại hợp đồng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-008
     title: Triển khai môi trường thử, đo tải và quan sát toàn bộ luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-009
     title: Viết hướng dẫn chạy, sơ đồ tài nguyên và quy trình xử lý sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: hands-on-integration-010
     title: Đánh giá kết quả tích hợp và dọn dẹp toàn bộ tài nguyên thực hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

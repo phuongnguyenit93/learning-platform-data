@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Micrometer là gì và giải quyết bài toán gắn phép đo cho ứng dụng JVM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Vai trò của Micrometer trong kiến trúc quan sát hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Phân biệt thư viện đo, bộ thu thập, hệ thống lưu trữ và dashboard
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Quan hệ giữa Micrometer, Spring Boot Actuator và Prometheus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Phạm vi của Micrometer Metrics, Observation, Tracing và Context Propagation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Chọn đo trực tiếp bằng meter hoặc quan sát một thao tác bằng Observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: Kiến thức đầu vào và trình tự học từ phép đo đơn giản đến tích hợp thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -70,7 +70,7 @@ menu:
   childs:
   - slug: architecture-001
     title: Luồng dữ liệu từ thao tác ứng dụng đến meter, registry và hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -79,7 +79,7 @@ menu:
     summary: ''
   - slug: architecture-002
     title: Vai trò của Meter, MeterRegistry, MeterBinder và MeterFilter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
     summary: ''
   - slug: architecture-003
     title: Tách mã ghi nhận phép đo khỏi cấu hình xuất dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: architecture-004
     title: Từ một meter trong ứng dụng đến nhiều chuỗi ở hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: architecture-005
     title: Tổng hợp dữ liệu tại ứng dụng và tính toán khi truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: architecture-006
     title: Giới hạn tính di động khi các hệ thống hỗ trợ thống kê khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: architecture-007
     title: Đo thủ công, đo qua thư viện và đo tự động của framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: architecture-008
     title: Theo dấu một yêu cầu từ ghi thời gian đến số liệu được công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -145,7 +145,7 @@ menu:
   childs:
   - slug: installation-001
     title: Chọn phiên bản Micrometer tương thích với JDK và framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -154,7 +154,7 @@ menu:
     summary: ''
   - slug: installation-002
     title: Quản lý phiên bản bằng Micrometer BOM hoặc BOM của Spring Boot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -163,7 +163,7 @@ menu:
     summary: ''
   - slug: installation-003
     title: Phân biệt micrometer-core, micrometer-observation và các mô-đun registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
     summary: ''
   - slug: installation-004
     title: Khai báo phụ thuộc bằng Gradle hoặc Maven
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: installation-005
     title: Khởi tạo SimpleMeterRegistry trong chương trình Java độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: installation-006
     title: Đăng ký và đọc lại một Counter hoặc Timer đầu tiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: installation-007
     title: Khởi tạo registry dùng thật và cung cấp cấu hình kết nối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: installation-008
     title: Quản lý đóng registry và tài nguyên khi ứng dụng kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -220,7 +220,7 @@ menu:
   childs:
   - slug: meter-identification-001
     title: Meter.Id và danh tính theo tổ hợp tên với tập tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -229,7 +229,7 @@ menu:
     summary: ''
   - slug: meter-identification-002
     title: Tên, mô tả, đơn vị cơ sở và loại meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -238,7 +238,7 @@ menu:
     summary: ''
   - slug: meter-identification-003
     title: Tag, Tags và cách xây dựng tập nhãn nhất quán
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -247,7 +247,7 @@ menu:
     summary: ''
   - slug: meter-identification-004
     title: Quy ước tên có dấu chấm và chuyển đổi sang tên của hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
     summary: ''
   - slug: meter-identification-005
     title: Đơn vị cơ sở cho thời gian, kích thước và các đại lượng nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: meter-identification-006
     title: Đăng ký nhiều lần cùng tên và tag sử dụng lại meter như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: meter-identification-007
     title: Xung đột khi cùng danh tính được đăng ký bằng các loại meter khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: meter-identification-008
     title: Khác biệt giữa tên tra cứu trong registry và tên công bố ra ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: meter-identification-009
     title: Thay đổi metadata hoặc tag sau khi meter đã được đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -304,7 +304,7 @@ menu:
   childs:
   - slug: tag-design-001
     title: Chọn tag theo câu hỏi cần phân tích và nhóm chịu trách nhiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -313,7 +313,7 @@ menu:
     summary: ''
   - slug: tag-design-002
     title: Số giá trị của từng tag và số tổ hợp meter được tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -322,7 +322,7 @@ menu:
     summary: ''
   - slug: tag-design-003
     title: Phân biệt số meter trong JVM với số chuỗi tại hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
     summary: ''
   - slug: tag-design-004
     title: Chuẩn hóa URI, trạng thái và loại lỗi thành tập giá trị được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: tag-design-005
     title: Nguy cơ đưa user_id, request_id hoặc thông báo lỗi nguyên văn vào tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: tag-design-006
     title: Tag dùng chung theo dịch vụ, môi trường và vùng triển khai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: tag-design-007
     title: Giữ tập khóa tag nhất quán cho các meter cùng tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: tag-design-008
     title: Lựa chọn tag có thể biết từ đầu và tag chỉ có khi thao tác kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: tag-design-009
     title: Chính sách dữ liệu nhạy cảm và ngân sách số chuỗi cho từng nhóm phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -388,7 +388,7 @@ menu:
   childs:
   - slug: meter-registry-001
     title: MeterRegistry giữ meter và cung cấp API tạo phép đo như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -397,7 +397,7 @@ menu:
     summary: ''
   - slug: meter-registry-002
     title: Tạo meter bằng phương thức tiện ích hoặc builder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -406,7 +406,7 @@ menu:
     summary: ''
   - slug: meter-registry-003
     title: Tra cứu bằng find, get, tên và tập tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -415,7 +415,7 @@ menu:
     summary: ''
   - slug: meter-registry-004
     title: SimpleMeterRegistry để quan sát giá trị trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
     summary: ''
   - slug: meter-registry-005
     title: CompositeMeterRegistry để kết nối nhiều registry thành phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: meter-registry-006
     title: Ghi nhận trước khi có registry thành phần và việc thêm registry về sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: meter-registry-007
     title: Metrics.globalRegistry và tác động của trạng thái tĩnh dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: meter-registry-008
     title: Tiêm registry vào thành phần ứng dụng để quản lý quyền sở hữu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: meter-registry-009
     title: Xóa meter, đóng registry và phạm vi ảnh hưởng đến dữ liệu đã xuất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: meter-registry-010
     title: Thứ tự cấu hình registry, bộ lọc và đăng ký meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -481,7 +481,7 @@ menu:
   childs:
   - slug: counter-001
     title: Counter dùng để đếm sự kiện tích lũy như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -490,7 +490,7 @@ menu:
     summary: ''
   - slug: counter-002
     title: Tăng một đơn vị hoặc một lượng dương có ý nghĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -499,7 +499,7 @@ menu:
     summary: ''
   - slug: counter-003
     title: Chọn tên, đơn vị và tag cho bộ đếm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -508,7 +508,7 @@ menu:
     summary: ''
   - slug: counter-004
     title: Giá trị tích lũy, thời gian sống tiến trình và tốc độ phát sinh sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -517,7 +517,7 @@ menu:
     summary: ''
   - slug: counter-005
     title: Đếm các kết quả thành công, thất bại hoặc bị từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
     summary: ''
   - slug: counter-006
     title: Số lần quan sát đã có trong Timer hoặc DistributionSummary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: counter-007
     title: Đặt lại khi ứng dụng khởi động và cách đọc dữ liệu phía hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: counter-008
     title: Kiểm chứng số lần tăng và tránh ghi nhận trùng một sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -556,7 +556,7 @@ menu:
   childs:
   - slug: gauge-001
     title: Gauge lấy giá trị hiện tại của đối tượng được theo dõi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -565,7 +565,7 @@ menu:
     summary: ''
   - slug: gauge-002
     title: Biến động giữa hai lần lấy mẫu và thông tin không được lưu lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -574,7 +574,7 @@ menu:
     summary: ''
   - slug: gauge-003
     title: Theo dõi giá trị qua hàm đọc, kích thước collection hoặc map
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -583,7 +583,7 @@ menu:
     summary: ''
   - slug: gauge-004
     title: Dùng AtomicInteger hoặc AtomicLong cho trạng thái có thể thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -592,7 +592,7 @@ menu:
     summary: ''
   - slug: gauge-005
     title: Tham chiếu yếu và trách nhiệm giữ đối tượng còn sống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -601,7 +601,7 @@ menu:
     summary: ''
   - slug: gauge-006
     title: Nguyên nhân Gauge trở thành NaN hoặc biến mất sau thu gom rác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
     summary: ''
   - slug: gauge-007
     title: Đối tượng số bất biến và việc đăng ký lại cùng danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: gauge-008
     title: Độ an toàn luồng và chi phí của hàm đọc Gauge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: gauge-009
     title: Lựa chọn Gauge cho độ sâu hàng đợi, số kết nối hoặc tác vụ đang chạy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: gauge-010
     title: Kiểm chứng giá trị khi trạng thái thay đổi và khi đối tượng bị giải phóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -649,7 +649,7 @@ menu:
   childs:
   - slug: timer-001
     title: Timer đo thời lượng thao tác cùng số lần và tổng thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -658,7 +658,7 @@ menu:
     summary: ''
   - slug: timer-002
     title: Ghi Duration hoặc lượng thời gian kèm TimeUnit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -667,7 +667,7 @@ menu:
     summary: ''
   - slug: timer-003
     title: Đo Runnable, Callable và các khối mã có kết quả trả về
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -676,7 +676,7 @@ menu:
     summary: ''
   - slug: timer-004
     title: Bọc tác vụ để thực thi có đo thời gian vào thời điểm khác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -685,7 +685,7 @@ menu:
     summary: ''
   - slug: timer-005
     title: Timer.Sample để tách mốc bắt đầu và kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -694,7 +694,7 @@ menu:
     summary: ''
   - slug: timer-006
     title: Chọn tag kết quả khi thao tác đã hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
     summary: ''
   - slug: timer-007
     title: Đảm bảo kết thúc phép đo trên đường thành công và đường ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: timer-008
     title: Đồng hồ đơn điệu và đồng hồ thời gian thực trong việc đo thời lượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: timer-009
     title: Giá trị cực đại theo cửa sổ thời gian và hiện tượng trở về không
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: timer-010
     title: Giá trị âm, tác vụ quá dài và giới hạn tích lũy thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: timer-011
     title: Đối chiếu count, totalTime, mean và max bằng dữ liệu có thời lượng biết trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -751,7 +751,7 @@ menu:
   childs:
   - slug: long-task-timer-001
     title: LongTaskTimer theo dõi thời gian của tác vụ đang thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -760,7 +760,7 @@ menu:
     summary: ''
   - slug: long-task-timer-002
     title: Số tác vụ đang chạy, tổng thời gian và thời gian lớn nhất của tác vụ hiện hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -769,7 +769,7 @@ menu:
     summary: ''
   - slug: long-task-timer-003
     title: Bắt đầu, giữ mẫu và dừng một tác vụ đúng vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -778,7 +778,7 @@ menu:
     summary: ''
   - slug: long-task-timer-004
     title: Nhiều tác vụ đồng thời dùng chung một LongTaskTimer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
     summary: ''
   - slug: long-task-timer-005
     title: Phân biệt thời gian tác vụ đang chạy với thống kê tác vụ đã hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: long-task-timer-006
     title: Đo tác vụ định kỳ, xử lý lô hoặc làm mới dữ liệu kéo dài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: long-task-timer-007
     title: Phát hiện vượt ngưỡng trong khi tác vụ vẫn chưa kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: long-task-timer-008
     title: Đọc dữ liệu công bố và kiểm chứng khi tác vụ kết thúc hoặc bị lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -826,7 +826,7 @@ menu:
   childs:
   - slug: distribution-summary-001
     title: DistributionSummary đo phân phối đại lượng không phải thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -835,7 +835,7 @@ menu:
     summary: ''
   - slug: distribution-summary-002
     title: Ứng dụng với kích thước dữ liệu, số phần tử hoặc lượng công việc mỗi lượt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -844,7 +844,7 @@ menu:
     summary: ''
   - slug: distribution-summary-003
     title: Ghi nhận count, totalAmount, mean và max
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -853,7 +853,7 @@ menu:
     summary: ''
   - slug: distribution-summary-004
     title: Chọn baseUnit và hệ số scale phù hợp với miền giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
     summary: ''
   - slug: distribution-summary-005
     title: Giới hạn miền giá trị kỳ vọng để kiểm soát thống kê phân phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: distribution-summary-006
     title: Đặt ngưỡng serviceLevelObjectives cho đại lượng đã được chuẩn hóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: distribution-summary-007
     title: Cửa sổ thống kê và tác động khi không có quan sát mới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: distribution-summary-008
     title: Phân biệt DistributionSummary trong Micrometer với kiểu Summary của Prometheus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -901,7 +901,7 @@ menu:
   childs:
   - slug: distributions-and-percentiles-001
     title: Ý nghĩa của histogram, bucket và phân vị p50, p95 hoặc p99
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -910,7 +910,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-002
     title: publishPercentiles để tính phân vị tại ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -919,7 +919,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-003
     title: publishPercentileHistogram để công bố dữ liệu phục vụ tính phân vị phía nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -928,7 +928,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-004
     title: Giới hạn tổng hợp phân vị đã tính sẵn giữa các tag hoặc instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -937,7 +937,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-005
     title: serviceLevelObjectives và lựa chọn ngưỡng đáp ứng yêu cầu dịch vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -946,7 +946,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-006
     title: minimumExpectedValue và maximumExpectedValue trong điều khiển độ chi tiết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-007
     title: expiry, bufferLength và thời gian sống của thống kê theo cửa sổ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-008
     title: Đánh đổi độ chính xác, bộ nhớ và số chuỗi công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-009
     title: Phạm vi hỗ trợ histogram của từng registry và thư viện phía dưới
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-010
     title: Ảnh hưởng của khoảng dừng JVM và cấu hình bù sai lệch khi lấy mẫu độ trễ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: distributions-and-percentiles-011
     title: Kiểm chứng phân phối bằng dữ liệu lệch và các giá trị ở phần đuôi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1003,7 +1003,7 @@ menu:
   childs:
   - slug: function-meters-001
     title: Khi nào dùng phép đo đọc từ bộ thống kê có sẵn của đối tượng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1012,7 +1012,7 @@ menu:
     summary: ''
   - slug: function-meters-002
     title: FunctionCounter và yêu cầu hàm đếm không giảm theo thời gian
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1021,7 +1021,7 @@ menu:
     summary: ''
   - slug: function-meters-003
     title: FunctionTimer theo dõi hàm đếm cùng tổng thời gian tích lũy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1030,7 +1030,7 @@ menu:
     summary: ''
   - slug: function-meters-004
     title: Khai báo đơn vị thời gian đầu vào và chuyển đổi theo registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1039,7 +1039,7 @@ menu:
     summary: ''
   - slug: function-meters-005
     title: Phân biệt đọc số tích lũy có sẵn với gọi increment hoặc record trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
     summary: ''
   - slug: function-meters-006
     title: Vòng đời đối tượng, đặt lại thống kê và việc thay nguồn theo dõi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: function-meters-007
     title: Đăng ký trùng danh tính và giới hạn của đối tượng số bất biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: function-meters-008
     title: Kiểm chứng số liệu từ cache hoặc thư viện cung cấp thống kê nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1078,7 +1078,7 @@ menu:
   childs:
   - slug: advanced-meters-001
     title: TimeGauge cho giá trị thời gian được lấy tại thời điểm quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1087,7 +1087,7 @@ menu:
     summary: ''
   - slug: advanced-meters-002
     title: MultiGauge cho tập hàng số liệu có thành viên thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1096,7 +1096,7 @@ menu:
     summary: ''
   - slug: advanced-meters-003
     title: Cập nhật, thay thế và dọn hàng cũ trong MultiGauge theo chính sách rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1105,7 +1105,7 @@ menu:
     summary: ''
   - slug: advanced-meters-004
     title: MeterProvider để tái sử dụng cấu hình chung khi tag được xác định động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1114,7 +1114,7 @@ menu:
     summary: ''
   - slug: advanced-meters-005
     title: Giới hạn loại meter có hỗ trợ MeterProvider theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1123,7 +1123,7 @@ menu:
     summary: ''
   - slug: advanced-meters-006
     title: Tái sử dụng meter trong trường đối tượng và giảm tạo builder lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
     summary: ''
   - slug: advanced-meters-007
     title: Đăng ký meter tùy chỉnh với Measurement và Statistic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: advanced-meters-008
     title: Đánh giá khả năng xuất meter tùy chỉnh ở hệ thống đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1153,7 +1153,7 @@ menu:
   childs:
   - slug: meter-filter-001
     title: Vai trò của MeterFilter trong chấp nhận, ánh xạ và cấu hình meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1162,7 +1162,7 @@ menu:
     summary: ''
   - slug: meter-filter-002
     title: Ý nghĩa của ACCEPT, DENY, NEUTRAL và meter không ghi nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1171,7 +1171,7 @@ menu:
     summary: ''
   - slug: meter-filter-003
     title: Thứ tự bộ lọc và tác động của quyết định chấp nhận sớm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1180,7 +1180,7 @@ menu:
     summary: ''
   - slug: meter-filter-004
     title: Lọc meter theo tên, tiền tố hoặc điều kiện định danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1189,7 +1189,7 @@ menu:
     summary: ''
   - slug: meter-filter-005
     title: Thêm, đổi hoặc loại tag và đổi tên meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1198,7 +1198,7 @@ menu:
     summary: ''
   - slug: meter-filter-006
     title: maximumAllowableMetrics để giới hạn số meter được đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1207,7 +1207,7 @@ menu:
     summary: ''
   - slug: meter-filter-007
     title: maximumAllowableTags để chặn số giá trị tag vượt ngân sách
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1216,7 +1216,7 @@ menu:
     summary: ''
   - slug: meter-filter-008
     title: Cấu hình thống kê phân phối theo nhóm meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
     summary: ''
   - slug: meter-filter-009
     title: Xung đột danh tính sau khi bỏ tag hoặc đổi tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: meter-filter-010
     title: Đăng ký bộ lọc trước meter và kiểm tra chính sách bằng trường hợp đối chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1246,7 +1246,7 @@ menu:
   childs:
   - slug: meter-binder-001
     title: MeterBinder đóng gói việc gắn phép đo cho một thành phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1255,7 +1255,7 @@ menu:
     summary: ''
   - slug: meter-binder-002
     title: Cài đặt bindTo với tên, tag và đối tượng theo dõi được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1264,7 +1264,7 @@ menu:
     summary: ''
   - slug: meter-binder-003
     title: Vòng đời binder, registry và tài nguyên được quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1273,7 +1273,7 @@ menu:
     summary: ''
   - slug: meter-binder-004
     title: Đăng ký binder thủ công trong Java hoặc dưới dạng bean trong Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1282,7 +1282,7 @@ menu:
     summary: ''
   - slug: meter-binder-005
     title: Giữ tham chiếu cho Gauge được tạo trong binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1291,7 +1291,7 @@ menu:
     summary: ''
   - slug: meter-binder-006
     title: Đảm bảo gọi gắn phép đo lặp lại không tạo số liệu sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1300,7 +1300,7 @@ menu:
     summary: ''
   - slug: meter-binder-007
     title: Dọn meter khi tài nguyên động được tạo hoặc giải phóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1309,7 +1309,7 @@ menu:
     summary: ''
   - slug: meter-binder-008
     title: Quy ước tên và tag có thể tùy biến cho thư viện dùng chung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1318,7 +1318,7 @@ menu:
     summary: ''
   - slug: meter-binder-009
     title: MeterConvention và phạm vi hỗ trợ tùy biến binder theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1330,7 +1330,7 @@ menu:
   childs:
   - slug: registries-and-time-001
     title: Phân biệt registry lấy mẫu chủ động với registry gửi dữ liệu định kỳ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1339,7 +1339,7 @@ menu:
     summary: ''
   - slug: registries-and-time-002
     title: Số tích lũy và số theo bước thời gian được công bố khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1348,7 +1348,7 @@ menu:
     summary: ''
   - slug: registries-and-time-003
     title: Tính tốc độ tại ứng dụng hoặc tại hệ thống truy vấn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1357,7 +1357,7 @@ menu:
     summary: ''
   - slug: registries-and-time-004
     title: StepMeterRegistry và việc chuyển cửa sổ thống kê
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1366,7 +1366,7 @@ menu:
     summary: ''
   - slug: registries-and-time-005
     title: Chu kỳ gửi, chu kỳ scrape và cửa sổ phân phối là các tham số riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1375,7 +1375,7 @@ menu:
     summary: ''
   - slug: registries-and-time-006
     title: Đọc số đếm, tổng thời gian hoặc max khi bước thời gian vừa thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1384,7 +1384,7 @@ menu:
     summary: ''
   - slug: registries-and-time-007
     title: Clock và vai trò của đồng hồ đối với ghi nhận hoặc công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1393,7 +1393,7 @@ menu:
     summary: ''
   - slug: registries-and-time-008
     title: Ảnh hưởng của ứng dụng dừng, registry đóng hoặc đích nhận gián đoạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
     summary: ''
   - slug: registries-and-time-009
     title: Kiểm chứng cùng một phép đo trên các registry có ngữ nghĩa công bố khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1414,7 +1414,7 @@ menu:
   childs:
   - slug: prometheus-001
     title: PrometheusMeterRegistry và cách cung cấp nội dung scrape
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1423,7 +1423,7 @@ menu:
     summary: ''
   - slug: prometheus-002
     title: Chọn registry Prometheus tương thích với thế hệ Prometheus Java Client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1432,7 +1432,7 @@ menu:
     summary: ''
   - slug: prometheus-003
     title: Công bố endpoint trong Java độc lập hoặc qua Spring Boot Actuator
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1441,7 +1441,7 @@ menu:
     summary: ''
   - slug: prometheus-004
     title: Chuyển tên, đơn vị và tag Micrometer thành chuỗi Prometheus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1450,7 +1450,7 @@ menu:
     summary: ''
   - slug: prometheus-005
     title: Các chuỗi count, sum, max và bucket từ một Timer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1459,7 +1459,7 @@ menu:
     summary: ''
   - slug: prometheus-006
     title: Tập khóa tag nhất quán và lỗi đăng ký cùng tên với cấu trúc khác nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1468,7 +1468,7 @@ menu:
     summary: ''
   - slug: prometheus-007
     title: Công bố Prometheus text hoặc OpenMetrics theo khả năng của client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1477,7 +1477,7 @@ menu:
     summary: ''
   - slug: prometheus-008
     title: Đọc Counter bằng rate và độ trễ trung bình từ dữ liệu Timer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1486,7 +1486,7 @@ menu:
     summary: ''
   - slug: prometheus-009
     title: Tính phân vị từ histogram và kiểm tra tương thích cấu hình thống kê
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1495,7 +1495,7 @@ menu:
     summary: ''
   - slug: prometheus-010
     title: Exemplar và điều kiện liên kết phép đo với trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
     summary: ''
   - slug: prometheus-011
     title: Kiểm chứng dữ liệu scrape khi ứng dụng khởi động lại hoặc meter ngừng hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1516,7 +1516,7 @@ menu:
   childs:
   - slug: otlp-001
     title: OtlpMeterRegistry và vai trò của giao thức OTLP đối với dữ liệu metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1525,7 +1525,7 @@ menu:
     summary: ''
   - slug: otlp-002
     title: Cấu hình endpoint, chu kỳ gửi và thông tin xác thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1534,7 +1534,7 @@ menu:
     summary: ''
   - slug: otlp-003
     title: Resource attributes và tag của từng meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1543,7 +1543,7 @@ menu:
     summary: ''
   - slug: otlp-004
     title: Ngữ nghĩa cumulative hoặc delta và khả năng hỗ trợ phía nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1552,7 +1552,7 @@ menu:
     summary: ''
   - slug: otlp-005
     title: Ánh xạ Counter, Gauge, Timer hoặc DistributionSummary thành điểm dữ liệu OTLP
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1561,7 +1561,7 @@ menu:
     summary: ''
   - slug: otlp-006
     title: Histogram có bucket tường minh hoặc dạng hàm mũ theo hỗ trợ phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1570,7 +1570,7 @@ menu:
     summary: ''
   - slug: otlp-007
     title: Giới hạn tổng hợp khi cấu hình phân vị tính tại ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1579,7 +1579,7 @@ menu:
     summary: ''
   - slug: otlp-008
     title: Gửi qua Collector và kiểm chứng dữ liệu bằng một đích thử nghiệm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
     summary: ''
   - slug: otlp-009
     title: Phân biệt xuất metric bằng OTLP registry với cấu hình xuất trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1600,7 +1600,7 @@ menu:
   childs:
   - slug: metrics-export-001
     title: Chọn registry theo giao thức, khả năng thống kê và môi trường vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1609,7 +1609,7 @@ menu:
     summary: ''
   - slug: metrics-export-002
     title: JMX registry để quan sát phép đo trong môi trường JVM
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1618,7 +1618,7 @@ menu:
     summary: ''
   - slug: metrics-export-003
     title: StatsD registry và ý nghĩa của giao thức gửi tới bộ gom số liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1627,7 +1627,7 @@ menu:
     summary: ''
   - slug: metrics-export-004
     title: Cấu hình registry cho hệ thống nhận như Datadog hoặc InfluxDB
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1636,7 +1636,7 @@ menu:
     summary: ''
   - slug: metrics-export-005
     title: Composite registry để xuất cùng phép đo tới nhiều đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1645,7 +1645,7 @@ menu:
     summary: ''
   - slug: metrics-export-006
     title: Khác biệt tên, đơn vị, thời gian và tag giữa các hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1654,7 +1654,7 @@ menu:
     summary: ''
   - slug: metrics-export-007
     title: Giới hạn lô, thời gian chờ và hành vi lỗi phụ thuộc từng registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1663,7 +1663,7 @@ menu:
     summary: ''
   - slug: metrics-export-008
     title: Quản lý lịch công bố, kết nối và tài nguyên khi đóng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
     summary: ''
   - slug: metrics-export-009
     title: Xác minh dữ liệu thực tế ở đích trước khi dùng dashboard hoặc cảnh báo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1684,7 +1684,7 @@ menu:
   childs:
   - slug: spring-boot-001
     title: Tự động cấu hình MeterRegistry từ các phụ thuộc có trên classpath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1693,7 +1693,7 @@ menu:
     summary: ''
   - slug: spring-boot-002
     title: Tiêm registry vào bean và tách cấu hình khỏi mã nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1702,7 +1702,7 @@ menu:
     summary: ''
   - slug: spring-boot-003
     title: MeterRegistryCustomizer cho tag dùng chung và cấu hình registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1711,7 +1711,7 @@ menu:
     summary: ''
   - slug: spring-boot-004
     title: Đăng ký MeterFilter hoặc MeterBinder dưới dạng bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1720,7 +1720,7 @@ menu:
     summary: ''
   - slug: spring-boot-005
     title: Điều khiển nhóm metric được bật hoặc tắt theo cấu hình ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1729,7 +1729,7 @@ menu:
     summary: ''
   - slug: spring-boot-006
     title: Cấu hình phân vị, histogram và ngưỡng cho từng tên meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1738,7 +1738,7 @@ menu:
     summary: ''
   - slug: spring-boot-007
     title: Endpoint /actuator/metrics để tìm và đọc phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1747,7 +1747,7 @@ menu:
     summary: ''
   - slug: spring-boot-008
     title: Phân biệt tên meter trong Actuator với tên được xuất sang Prometheus
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1756,7 +1756,7 @@ menu:
     summary: ''
   - slug: spring-boot-009
     title: Cho phép công bố /actuator/prometheus và bảo vệ đường truy cập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1765,7 +1765,7 @@ menu:
     summary: ''
   - slug: spring-boot-010
     title: Composite registry, global registry và nguy cơ đăng ký ngoài vòng đời Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
     summary: ''
   - slug: spring-boot-011
     title: Tự động cấu hình ObservationRegistry và cách bổ sung thành phần tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1786,7 +1786,7 @@ menu:
   childs:
   - slug: built-in-metrics-001
     title: Phép đo bộ nhớ JVM, vùng nhớ, luồng và bộ nạp lớp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1795,7 +1795,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-002
     title: Phép đo GC, CPU, thời gian sống tiến trình và tài nguyên hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1804,7 +1804,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-003
     title: Giám sát executor, số luồng hoạt động và tác vụ chờ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1813,7 +1813,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-004
     title: Giám sát bộ đệm kết nối cơ sở dữ liệu và giới hạn của dữ liệu được cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1822,7 +1822,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-005
     title: 'Giám sát cache: tỷ lệ truy cập, dung lượng và loại bỏ phần tử'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-006
     title: Phép đo HTTP phía máy chủ và chuẩn hóa đường dẫn yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1840,7 +1840,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-007
     title: Phép đo HTTP phía máy khách và cách chọn đối tượng đã được gắn phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1849,7 +1849,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-008
     title: Giám sát tác vụ định kỳ, xử lý thông điệp hoặc thư viện tích hợp khi được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-009
     title: Phân biệt metric tự động, metric cần bật và metric cần binder bổ sung
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-010
     title: Kiểm tra điều kiện của thư viện hoặc framework để biết phép đo thực sự được tạo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: built-in-metrics-011
     title: Đọc tên và tag thực tế theo phiên bản thay vì suy đoán từ dashboard mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
   childs:
   - slug: annotations-and-aop-001
     title: Vai trò của annotation và thành phần thực thi phép đo phía sau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-002
     title: '@Timed và cấu hình TimedAspect khi framework chưa cung cấp hỗ trợ'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-003
     title: '@Counted và cấu hình CountedAspect cho số lần thực thi'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1915,7 +1915,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-004
     title: '@Timed với longTask và cách đọc dữ liệu tác vụ đang chạy'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1924,7 +1924,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-005
     title: '@Observed và ObservedAspect cho vòng đời Observation'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1933,7 +1933,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-006
     title: Tag từ đối số bằng @MeterTag và cơ chế phân giải được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-007
     title: Giới hạn proxy, lời gọi nội bộ cùng đối tượng và phương thức không được chặn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-008
     title: Đo phương thức trả CompletableFuture và xác minh thời điểm hoàn tất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-009
     title: Giới hạn hỗ trợ kiểu bất đồng bộ hoặc reactive của từng aspect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: annotations-and-aop-010
     title: Ngăn phép đo trùng khi framework đã tự động quan sát thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1981,7 +1981,7 @@ menu:
   childs:
   - slug: business-metrics-001
     title: Chọn câu hỏi nghiệp vụ có thể trả lời bằng số liệu tổng hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1990,7 +1990,7 @@ menu:
     summary: ''
   - slug: business-metrics-002
     title: Đếm một sự kiện theo kết quả được xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1999,7 +1999,7 @@ menu:
     summary: ''
   - slug: business-metrics-003
     title: Đo thời gian một thao tác ở ranh giới người dùng hoặc dịch vụ quan tâm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2008,7 +2008,7 @@ menu:
     summary: ''
   - slug: business-metrics-004
     title: Đo kích thước dữ liệu, số phần tử hoặc lượng công việc mỗi lượt
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2017,7 +2017,7 @@ menu:
     summary: ''
   - slug: business-metrics-005
     title: Đo hàng đợi, số tác vụ hiện hành và thời gian chờ riêng với thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2026,7 +2026,7 @@ menu:
     summary: ''
   - slug: business-metrics-006
     title: Phân biệt một yêu cầu logic với các lần thử lại hoặc gọi phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
     summary: ''
   - slug: business-metrics-007
     title: Xác định kết quả sau giao dịch hoàn tất và tránh số liệu thành công sai
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: business-metrics-008
     title: Chọn nhóm lỗi ổn định và gắn hướng dẫn diễn giải số liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: business-metrics-009
     title: Đối chiếu phép đo với tải thử nghiệm hoặc dữ liệu nghiệp vụ có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2065,7 +2065,7 @@ menu:
   childs:
   - slug: asynchronous-instrumentation-001
     title: Phân biệt thời gian lập lịch, chờ thực thi và thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2074,7 +2074,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-002
     title: Đo tác vụ ExecutorService bằng binder phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2083,7 +2083,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-003
     title: Timer.Sample qua nhiều callback và điểm kết thúc được xác định rõ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2092,7 +2092,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-004
     title: Đo CompletableFuture ở nhánh hoàn tất, lỗi hoặc hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2101,7 +2101,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-005
     title: Phân biệt thời điểm tạo Mono hoặc Flux với thời điểm đăng ký và thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2110,7 +2110,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-006
     title: Chọn hỗ trợ Micrometer của Reactor theo phiên bản đang dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2119,7 +2119,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-007
     title: Tránh ghi nhận nhiều lần khi có đăng ký lại hoặc retry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2128,7 +2128,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-008
     title: Quan hệ giữa đo thời lượng và truyền ngữ cảnh qua ranh giới luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
     summary: ''
   - slug: asynchronous-instrumentation-009
     title: Kiểm thử hoàn tất chậm, lỗi bất đồng bộ và tác vụ bị hủy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2149,7 +2149,7 @@ menu:
   childs:
   - slug: observation-001
     title: Observation là gì và vì sao cần mô tả một thao tác quan sát được
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2158,7 +2158,7 @@ menu:
     summary: ''
   - slug: observation-002
     title: Quan hệ giữa Observation, ObservationRegistry và ObservationHandler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2167,7 +2167,7 @@ menu:
     summary: ''
   - slug: observation-003
     title: Vòng đời tạo, start, stop và trạng thái không thực hiện quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2176,7 +2176,7 @@ menu:
     summary: ''
   - slug: observation-004
     title: observe để quản lý vòng đời một khối mã đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2185,7 +2185,7 @@ menu:
     summary: ''
   - slug: observation-005
     title: Quản lý thủ công start và stop trên mọi đường thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2194,7 +2194,7 @@ menu:
     summary: ''
   - slug: observation-006
     title: Observation.Context để giữ trạng thái phục vụ quá trình quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2203,7 +2203,7 @@ menu:
     summary: ''
   - slug: observation-007
     title: Observation.Scope và việc đóng phạm vi đúng vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2212,7 +2212,7 @@ menu:
     summary: ''
   - slug: observation-008
     title: Ghi nhận ngoại lệ bằng error và tín hiệu tùy ý bằng event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2221,7 +2221,7 @@ menu:
     summary: ''
   - slug: observation-009
     title: Quan hệ cha con giữa các Observation lồng nhau
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2230,7 +2230,7 @@ menu:
     summary: ''
   - slug: observation-010
     title: Phân biệt kết thúc Observation với đóng Scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2242,7 +2242,7 @@ menu:
   childs:
   - slug: observation-conventions-001
     title: Tên kỹ thuật, contextualName và ý nghĩa của từng loại tên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2251,7 +2251,7 @@ menu:
     summary: ''
   - slug: observation-conventions-002
     title: Low-cardinality key values và high-cardinality key values
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2260,7 +2260,7 @@ menu:
     summary: ''
   - slug: observation-conventions-003
     title: Chọn thông tin đưa vào metric hoặc ngữ cảnh phục vụ trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2269,7 +2269,7 @@ menu:
     summary: ''
   - slug: observation-conventions-004
     title: ObservationConvention để tách quy ước khỏi mã thực thi thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2278,7 +2278,7 @@ menu:
     summary: ''
   - slug: observation-conventions-005
     title: Context chuyên biệt và supportsContext khi tùy biến một loại quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2287,7 +2287,7 @@ menu:
     summary: ''
   - slug: observation-conventions-006
     title: Thứ tự ưu tiên giữa quy ước tùy chỉnh, quy ước dùng chung và mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2296,7 +2296,7 @@ menu:
     summary: ''
   - slug: observation-conventions-007
     title: ObservationPredicate để quyết định thao tác nào được quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2305,7 +2305,7 @@ menu:
     summary: ''
   - slug: observation-conventions-008
     title: ObservationFilter để bổ sung hoặc loại thông tin theo vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
     summary: ''
   - slug: observation-conventions-009
     title: Thời điểm thêm nhãn và ảnh hưởng tới dữ liệu được tạo khi start hoặc stop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2326,7 +2326,7 @@ menu:
   childs:
   - slug: observation-handling-001
     title: ObservationHandler phản ứng với các sự kiện vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2335,7 +2335,7 @@ menu:
     summary: ''
   - slug: observation-handling-002
     title: Đăng ký handler và kiểm tra loại Context được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2344,7 +2344,7 @@ menu:
     summary: ''
   - slug: observation-handling-003
     title: Giữ dữ liệu giữa onStart, onError, onEvent và onStop
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2353,7 +2353,7 @@ menu:
     summary: ''
   - slug: observation-handling-004
     title: DefaultMeterObservationHandler để sinh phép đo từ Observation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2362,7 +2362,7 @@ menu:
     summary: ''
   - slug: observation-handling-005
     title: Timer khi hoàn tất và LongTaskTimer cho thao tác còn hoạt động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2371,7 +2371,7 @@ menu:
     summary: ''
   - slug: observation-handling-006
     title: Phạm vi nhãn có sẵn lúc bắt đầu so với lúc kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
     summary: ''
   - slug: observation-handling-007
     title: Xử lý event, error và dữ liệu metric được hỗ trợ theo phiên bản
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: observation-handling-008
     title: Phối hợp nhiều handler cho phép đo, trace hoặc xử lý tùy biến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: observation-handling-009
     title: ObservationDocumentation để mô tả danh mục quan sát và các khóa dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: observation-handling-010
     title: Kiểm soát lỗi trong handler để giữ hoạt động nghiệp vụ ổn định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2419,7 +2419,7 @@ menu:
   childs:
   - slug: tracing-and-context-001
     title: Micrometer Tracing kết nối vòng đời quan sát với tracer như thế nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2428,7 +2428,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-002
     title: Bridge cho OpenTelemetry hoặc Brave và quản lý phiên bản tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2437,7 +2437,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-003
     title: Phân biệt MeterRegistry, ObservationRegistry và cấu hình xuất trace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-004
     title: Sampling của trace và việc kiểm soát phép đo là các cấu hình riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-005
     title: Liên kết trace_id hoặc span_id với nhật ký mà vẫn giữ tag metric có giới hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-006
     title: Ngữ cảnh hiện hành trên luồng và ranh giới mất ngữ cảnh khi chạy bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-007
     title: Vai trò của Micrometer Context Propagation với ThreadLocal và Reactor Context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-008
     title: Khôi phục rồi dọn ngữ cảnh để tránh lẫn dữ liệu giữa các yêu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: tracing-and-context-009
     title: Phạm vi tích hợp cần biết trước khi học sâu truyền ngữ cảnh hoặc tracing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2503,7 +2503,7 @@ menu:
   childs:
   - slug: performance-001
     title: Chi phí đăng ký, tra cứu và ghi nhận meter trong đường xử lý thường xuyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Lưu meter hoặc MeterProvider để hạn chế tạo đối tượng lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Bùng nổ số meter do tag động và ảnh hưởng đến bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Chi phí histogram, số bucket và phân vị tính tại ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Chi phí lấy mẫu Gauge và nguy cơ hàm đọc thực hiện công việc chậm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Độ an toàn luồng của meter và của đối tượng chứa trạng thái nguồn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Dọn meter của tài nguyên động và kiểm soát thời gian sống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Phát hiện tag có quá nhiều giá trị theo khả năng công cụ được phiên bản cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2575,7 +2575,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Đo chi phí bằng tải thực tế và so sánh khi bật hoặc tắt phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2584,7 +2584,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: Đặt ngân sách CPU, bộ nhớ và số chuỗi cho từng nhóm phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
   childs:
   - slug: testing-001
     title: SimpleMeterRegistry để kiểm tra count, tag và giá trị trong bộ nhớ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: MockClock để điều khiển thời gian mà không cần chờ thật
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Kiểm thử Timer.Sample và thời lượng trên nhánh thành công hoặc ngoại lệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Kiểm thử LongTaskTimer trước, trong và sau khi tác vụ kết thúc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Kiểm thử Gauge với đối tượng có vòng đời được kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2641,7 +2641,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử bộ lọc chặn meter, biến đổi nhãn và xung đột danh tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2650,7 +2650,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử chuyển cửa sổ của step registry hoặc thống kê phân phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2659,7 +2659,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: TestObservationRegistry để xác minh vòng đời và dữ liệu quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2668,7 +2668,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Kiểm thử quan sát lồng nhau, lỗi, sự kiện và đóng Scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2677,7 +2677,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử aspect qua đối tượng được proxy và các trường hợp gọi bị bỏ qua
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2686,7 +2686,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử nội dung scrape hoặc dữ liệu xuất thay vì chỉ đọc giá trị registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2695,7 +2695,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Tách kiểm thử phép đo đơn vị với kiểm thử tích hợp qua hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2707,7 +2707,7 @@ menu:
   childs:
   - slug: security-and-operations-001
     title: Phân loại dữ liệu trong tag, key-value, mô tả lỗi và ngữ cảnh quan sát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2716,7 +2716,7 @@ menu:
     summary: ''
   - slug: security-and-operations-002
     title: Bảo vệ endpoint Actuator hoặc endpoint scrape
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2725,7 +2725,7 @@ menu:
     summary: ''
   - slug: security-and-operations-003
     title: Quản lý token, URL đích và thông tin xác thực registry qua cấu hình riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2734,7 +2734,7 @@ menu:
     summary: ''
   - slug: security-and-operations-004
     title: TLS, chính sách mạng và quyền gửi dữ liệu tới hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2743,7 +2743,7 @@ menu:
     summary: ''
   - slug: security-and-operations-005
     title: Kiểm soát rủi ro số chuỗi tăng theo dữ liệu người dùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2752,7 +2752,7 @@ menu:
     summary: ''
   - slug: security-and-operations-006
     title: Theo dõi lỗi công bố và khả năng xuất dữ liệu khi ứng dụng chịu tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2761,7 +2761,7 @@ menu:
     summary: ''
   - slug: security-and-operations-007
     title: Quản lý lịch gửi, tài nguyên nền và đóng registry khi dừng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2770,7 +2770,7 @@ menu:
     summary: ''
   - slug: security-and-operations-008
     title: Đối chiếu dữ liệu giữa các instance, phiên bản và môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2779,7 +2779,7 @@ menu:
     summary: ''
   - slug: security-and-operations-009
     title: Tài liệu tên meter, đơn vị, tag, chủ sở hữu và cách diễn giải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2791,7 +2791,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Không có meter do đăng ký sai registry hoặc bộ lọc từ chối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2800,7 +2800,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Có meter trong bộ nhớ nhưng dữ liệu chưa được công bố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2809,7 +2809,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Khác tên giữa mã Java, Actuator và hệ thống nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2818,7 +2818,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Gauge trả NaN do mất đối tượng nguồn hoặc lỗi hàm đọc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2827,7 +2827,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: Đăng ký trùng, khác loại meter hoặc thiếu nhất quán tập khóa tag
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2836,7 +2836,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Timer không ghi nhận do thiếu stop hoặc kết thúc sai nhánh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2845,7 +2845,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Số đếm tăng hai lần do nhiều tầng cùng đo một thao tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2854,7 +2854,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Max về không hoặc dữ liệu chỉ đổi sau khi chuyển cửa sổ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2863,7 +2863,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Không có phân vị hoặc bucket do cấu hình hoặc hệ thống nhận không hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2872,7 +2872,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Annotation không có tác dụng do thiếu aspect, thiếu proxy hoặc tự gọi nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2881,7 +2881,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Observation không sinh dữ liệu do thiếu handler, predicate hoặc cấu hình tương ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2890,7 +2890,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Mất quan hệ quan sát khi đổi luồng hoặc đăng ký reactive
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2899,7 +2899,7 @@ menu:
     summary: ''
   - slug: troubleshooting-013
     title: Bộ nhớ tăng hoặc công bố chậm do nhiều tag, bucket hoặc công việc lấy mẫu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2911,7 +2911,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Khóa phiên bản và đối chiếu ma trận JDK, Spring Boot, Micrometer cùng registry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2920,7 +2920,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Kiểm tra thay đổi tên, tag, đơn vị và dữ liệu công bố trước khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2929,7 +2929,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Chuyển thế hệ Prometheus Java Client và các ràng buộc đăng ký
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2938,7 +2938,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Chuyển dần phép đo thủ công sang Observation tại ranh giới phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2947,7 +2947,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Giữ tương thích dashboard và cảnh báo khi thay đổi phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2956,7 +2956,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Đánh giá API mới như MeterProvider hoặc MeterConvention theo phiên bản thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2965,7 +2965,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Triển khai từng phần với dữ liệu đối chứng và phương án quay lui
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Cập nhật kiểm thử hợp đồng dữ liệu và tài liệu phép đo sau thay đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2986,7 +2986,7 @@ menu:
   childs:
   - slug: hands-on-exercise-001
     title: Tạo chương trình Java có Counter, Gauge, Timer và SimpleMeterRegistry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2995,7 +2995,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-002
     title: Đóng gói phép đo hàng đợi bằng MeterBinder có vòng đời rõ ràng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3004,7 +3004,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-003
     title: Đo tác vụ đang chạy bằng LongTaskTimer và kết quả hoàn tất bằng Timer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3013,7 +3013,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-004
     title: Thiết kế phép đo kích thước dữ liệu với DistributionSummary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3022,7 +3022,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-005
     title: Bật histogram có ngưỡng dịch vụ và kiểm chứng trên dữ liệu mô phỏng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3031,7 +3031,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-006
     title: Tích hợp Spring Boot, Prometheus registry và endpoint được bảo vệ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-007
     title: Viết truy vấn kiểm tra lưu lượng, lỗi và độ trễ từ dữ liệu Micrometer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-008
     title: Tạo Observation có Context, convention và handler tạo phép đo
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-009
     title: Đo thao tác bất đồng bộ với đường lỗi, hủy và retry được kiểm chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-010
     title: Tìm rồi sửa một trường hợp Gauge mất dữ liệu hoặc tag gây quá nhiều meter
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-011
     title: Xuất cùng phép đo qua nhiều registry và đối chiếu ý nghĩa dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: hands-on-exercise-012
     title: Hoàn thiện kiểm thử, ngân sách tài nguyên và danh mục phép đo của ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

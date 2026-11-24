@@ -1831,7 +1831,7 @@ menu:
     summary: ''
   - slug: sorting-rules-006
     title: Sort cost control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1852,7 +1852,7 @@ menu:
   childs:
   - slug: export-security-001
     title: Export eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1861,7 +1861,7 @@ menu:
     summary: ''
   - slug: export-security-002
     title: Export field allowlist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1870,7 +1870,7 @@ menu:
     summary: ''
   - slug: export-security-003
     title: Export size restriction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1879,7 +1879,7 @@ menu:
     summary: ''
   - slug: export-security-004
     title: Export asynchronous processing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1888,7 +1888,7 @@ menu:
     summary: ''
   - slug: export-security-005
     title: Export download authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1897,7 +1897,7 @@ menu:
     summary: ''
   - slug: export-security-006
     title: Export retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1906,7 +1906,7 @@ menu:
     summary: ''
   - slug: export-security-007
     title: Export audit event
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1918,7 +1918,7 @@ menu:
   childs:
   - slug: import-security-001
     title: Import source trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1927,7 +1927,7 @@ menu:
     summary: ''
   - slug: import-security-002
     title: Import schema validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1936,7 +1936,7 @@ menu:
     summary: ''
   - slug: import-security-003
     title: Import row authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1945,7 +1945,7 @@ menu:
     summary: ''
   - slug: import-security-004
     title: Import duplicate handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1954,7 +1954,7 @@ menu:
     summary: ''
   - slug: import-security-005
     title: Import partial failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1963,7 +1963,7 @@ menu:
     summary: ''
   - slug: import-security-006
     title: Import rollback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1972,7 +1972,7 @@ menu:
     summary: ''
   - slug: import-security-007
     title: Import result reporting
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1984,7 +1984,7 @@ menu:
   childs:
   - slug: file-business-rules-001
     title: File ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1993,7 +1993,7 @@ menu:
     summary: ''
   - slug: file-business-rules-002
     title: File classification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2002,7 +2002,7 @@ menu:
     summary: ''
   - slug: file-business-rules-003
     title: File lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2011,7 +2011,7 @@ menu:
     summary: ''
   - slug: file-business-rules-004
     title: File replacement policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2020,7 +2020,7 @@ menu:
     summary: ''
   - slug: file-business-rules-005
     title: File deletion authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2029,7 +2029,7 @@ menu:
     summary: ''
   - slug: file-business-rules-006
     title: File download entitlement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2038,7 +2038,7 @@ menu:
     summary: ''
   - slug: file-business-rules-007
     title: File action audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2050,7 +2050,7 @@ menu:
   childs:
   - slug: concurrency-rules-001
     title: Concurrent command model
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2059,7 +2059,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-002
     title: Lost update prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2068,7 +2068,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-003
     title: Optimistic version checking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2077,7 +2077,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-004
     title: Pessimistic lock decision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2086,7 +2086,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-005
     title: Concurrent approval handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2095,7 +2095,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-006
     title: Concurrent cancellation handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2104,7 +2104,7 @@ menu:
     summary: ''
   - slug: concurrency-rules-007
     title: Concurrency conflict message
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
   childs:
   - slug: race-conditions-001
     title: Double spend race
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: race-conditions-002
     title: Double claim race
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2134,7 +2134,7 @@ menu:
     summary: ''
   - slug: race-conditions-003
     title: Duplicate redemption race
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2143,7 +2143,7 @@ menu:
     summary: ''
   - slug: race-conditions-004
     title: Parallel state change race
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2152,7 +2152,7 @@ menu:
     summary: ''
   - slug: race-conditions-005
     title: Check use gap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2161,7 +2161,7 @@ menu:
     summary: ''
   - slug: race-conditions-006
     title: Race detection test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2170,7 +2170,7 @@ menu:
     summary: ''
   - slug: race-conditions-007
     title: Race incident response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
   childs:
   - slug: toctou-defense-001
     title: Check time definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: toctou-defense-002
     title: Use time definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: toctou-defense-003
     title: Authorization recheck
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: toctou-defense-004
     title: Price recheck
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: toctou-defense-005
     title: Inventory recheck
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: toctou-defense-006
     title: Policy recheck
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2236,7 +2236,7 @@ menu:
     summary: ''
   - slug: toctou-defense-007
     title: TOCTOU regression test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
   childs:
   - slug: idempotency-001
     title: Idempotency key purpose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: idempotency-002
     title: Idempotency key scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: idempotency-003
     title: Idempotency record storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: idempotency-004
     title: Idempotency response replay
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: idempotency-005
     title: Idempotency expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: idempotency-006
     title: Idempotency collision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: idempotency-007
     title: Idempotency failure handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2314,7 +2314,7 @@ menu:
   childs:
   - slug: replay-protection-001
     title: Command replay scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2323,7 +2323,7 @@ menu:
     summary: ''
   - slug: replay-protection-002
     title: Event replay scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
     summary: ''
   - slug: replay-protection-003
     title: Webhook replay scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: replay-protection-004
     title: Nonce validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: replay-protection-005
     title: Timestamp freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: replay-protection-006
     title: Replay detection storage
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: replay-protection-007
     title: Replay incident handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2380,7 +2380,7 @@ menu:
   childs:
   - slug: transactions-001
     title: Business transaction boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2389,7 +2389,7 @@ menu:
     summary: ''
   - slug: transactions-002
     title: Atomic rule enforcement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2398,7 +2398,7 @@ menu:
     summary: ''
   - slug: transactions-003
     title: Commit failure behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2407,7 +2407,7 @@ menu:
     summary: ''
   - slug: transactions-004
     title: Rollback semantics
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2416,7 +2416,7 @@ menu:
     summary: ''
   - slug: transactions-005
     title: Transaction isolation choice
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2425,7 +2425,7 @@ menu:
     summary: ''
   - slug: transactions-006
     title: Transaction timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
     summary: ''
   - slug: transactions-007
     title: Transaction auditability
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2446,7 +2446,7 @@ menu:
   childs:
   - slug: distributed-consistency-001
     title: Cross service invariant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2455,7 +2455,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-002
     title: Eventual consistency risk
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2464,7 +2464,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-003
     title: Read after write behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2473,7 +2473,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-004
     title: Distributed conflict resolution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2482,7 +2482,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-005
     title: Compensation action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2491,7 +2491,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-006
     title: Reconciliation process
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2500,7 +2500,7 @@ menu:
     summary: ''
   - slug: distributed-consistency-007
     title: Consistency monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2512,7 +2512,7 @@ menu:
   childs:
   - slug: database-constraints-001
     title: Unique business constraint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2521,7 +2521,7 @@ menu:
     summary: ''
   - slug: database-constraints-002
     title: Check constraint
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2530,7 +2530,7 @@ menu:
     summary: ''
   - slug: database-constraints-003
     title: Foreign key ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2539,7 +2539,7 @@ menu:
     summary: ''
   - slug: database-constraints-004
     title: Conditional uniqueness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2548,7 +2548,7 @@ menu:
     summary: ''
   - slug: database-constraints-005
     title: Constraint error translation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2557,7 +2557,7 @@ menu:
     summary: ''
   - slug: database-constraints-006
     title: Constraint migration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2566,7 +2566,7 @@ menu:
     summary: ''
   - slug: database-constraints-007
     title: Constraint bypass testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2578,7 +2578,7 @@ menu:
   childs:
   - slug: monetary-rules-001
     title: Balance ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2587,7 +2587,7 @@ menu:
     summary: ''
   - slug: monetary-rules-002
     title: Debit authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2596,7 +2596,7 @@ menu:
     summary: ''
   - slug: monetary-rules-003
     title: Credit authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2605,7 +2605,7 @@ menu:
     summary: ''
   - slug: monetary-rules-004
     title: Insufficient balance handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2614,7 +2614,7 @@ menu:
     summary: ''
   - slug: monetary-rules-005
     title: Ledger entry integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2623,7 +2623,7 @@ menu:
     summary: ''
   - slug: monetary-rules-006
     title: Money movement audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2632,7 +2632,7 @@ menu:
     summary: ''
   - slug: monetary-rules-007
     title: Financial correction policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2644,7 +2644,7 @@ menu:
   childs:
   - slug: currency-handling-001
     title: Currency allowlist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2653,7 +2653,7 @@ menu:
     summary: ''
   - slug: currency-handling-002
     title: Currency conversion authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2662,7 +2662,7 @@ menu:
     summary: ''
   - slug: currency-handling-003
     title: Exchange rate freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2671,7 +2671,7 @@ menu:
     summary: ''
   - slug: currency-handling-004
     title: Mixed currency prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2680,7 +2680,7 @@ menu:
     summary: ''
   - slug: currency-handling-005
     title: Currency precision
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2689,7 +2689,7 @@ menu:
     summary: ''
   - slug: currency-handling-006
     title: Currency display consistency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2698,7 +2698,7 @@ menu:
     summary: ''
   - slug: currency-handling-007
     title: Currency conversion audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2710,7 +2710,7 @@ menu:
   childs:
   - slug: rounding-rules-001
     title: Rounding mode selection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2719,7 +2719,7 @@ menu:
     summary: ''
   - slug: rounding-rules-002
     title: Rounding point
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2728,7 +2728,7 @@ menu:
     summary: ''
   - slug: rounding-rules-003
     title: Fractional amount handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2737,7 +2737,7 @@ menu:
     summary: ''
   - slug: rounding-rules-004
     title: Tax rounding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2746,7 +2746,7 @@ menu:
     summary: ''
   - slug: rounding-rules-005
     title: Discount rounding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2755,7 +2755,7 @@ menu:
     summary: ''
   - slug: rounding-rules-006
     title: Settlement rounding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2764,7 +2764,7 @@ menu:
     summary: ''
   - slug: rounding-rules-007
     title: Rounding test vectors
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
   childs:
   - slug: pricing-rules-001
     title: Price source authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: pricing-rules-002
     title: Price snapshot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: pricing-rules-003
     title: Price effective period
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: pricing-rules-004
     title: Price change authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: pricing-rules-005
     title: Customer price visibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2821,7 +2821,7 @@ menu:
     summary: ''
   - slug: pricing-rules-006
     title: Price override approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2830,7 +2830,7 @@ menu:
     summary: ''
   - slug: pricing-rules-007
     title: Price calculation audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
   childs:
   - slug: discounts-001
     title: Discount eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: discounts-002
     title: Discount stacking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: discounts-003
     title: Discount precedence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: discounts-004
     title: Discount expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: discounts-005
     title: Discount maximum value
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: discounts-006
     title: Discount reversal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: discounts-007
     title: Discount abuse monitoring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2908,7 +2908,7 @@ menu:
   childs:
   - slug: promotions-001
     title: Promotion activation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2917,7 +2917,7 @@ menu:
     summary: ''
   - slug: promotions-002
     title: Promotion audience
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2926,7 +2926,7 @@ menu:
     summary: ''
   - slug: promotions-003
     title: Promotion quota
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
     summary: ''
   - slug: promotions-004
     title: Promotion geographic scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: promotions-005
     title: Promotion schedule
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: promotions-006
     title: Promotion cancellation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: promotions-007
     title: Promotion outcome audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2974,7 +2974,7 @@ menu:
   childs:
   - slug: coupons-001
     title: Coupon code uniqueness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2983,7 +2983,7 @@ menu:
     summary: ''
   - slug: coupons-002
     title: Coupon redemption eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2992,7 +2992,7 @@ menu:
     summary: ''
   - slug: coupons-003
     title: Coupon redemption count
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3001,7 +3001,7 @@ menu:
     summary: ''
   - slug: coupons-004
     title: Coupon per user limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3010,7 +3010,7 @@ menu:
     summary: ''
   - slug: coupons-005
     title: Coupon expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3019,7 +3019,7 @@ menu:
     summary: ''
   - slug: coupons-006
     title: Coupon revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
     summary: ''
   - slug: coupons-007
     title: Coupon brute force defense
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3040,7 +3040,7 @@ menu:
   childs:
   - slug: inventory-rules-001
     title: Inventory ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3049,7 +3049,7 @@ menu:
     summary: ''
   - slug: inventory-rules-002
     title: Available quantity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3058,7 +3058,7 @@ menu:
     summary: ''
   - slug: inventory-rules-003
     title: Reserved quantity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3067,7 +3067,7 @@ menu:
     summary: ''
   - slug: inventory-rules-004
     title: Inventory hold expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3076,7 +3076,7 @@ menu:
     summary: ''
   - slug: inventory-rules-005
     title: Oversell prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3085,7 +3085,7 @@ menu:
     summary: ''
   - slug: inventory-rules-006
     title: Inventory adjustment authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3094,7 +3094,7 @@ menu:
     summary: ''
   - slug: inventory-rules-007
     title: Inventory movement audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3106,7 +3106,7 @@ menu:
   childs:
   - slug: order-security-001
     title: Order creation authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3115,7 +3115,7 @@ menu:
     summary: ''
   - slug: order-security-002
     title: Order item integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3124,7 +3124,7 @@ menu:
     summary: ''
   - slug: order-security-003
     title: Order price snapshot
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3133,7 +3133,7 @@ menu:
     summary: ''
   - slug: order-security-004
     title: Order state transitions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3142,7 +3142,7 @@ menu:
     summary: ''
   - slug: order-security-005
     title: Order cancellation policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3151,7 +3151,7 @@ menu:
     summary: ''
   - slug: order-security-006
     title: Order ownership transfer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3160,7 +3160,7 @@ menu:
     summary: ''
   - slug: order-security-007
     title: Order history integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3172,7 +3172,7 @@ menu:
   childs:
   - slug: fulfillment-rules-001
     title: Fulfillment eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3181,7 +3181,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-002
     title: Shipping destination rules
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3190,7 +3190,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-003
     title: Fulfillment assignment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3199,7 +3199,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-004
     title: Partial fulfillment
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3208,7 +3208,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-005
     title: Fulfillment cancellation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3217,7 +3217,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-006
     title: Delivery confirmation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3226,7 +3226,7 @@ menu:
     summary: ''
   - slug: fulfillment-rules-007
     title: Fulfillment audit trail
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3238,7 +3238,7 @@ menu:
   childs:
   - slug: payment-rules-001
     title: Payment intent ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3247,7 +3247,7 @@ menu:
     summary: ''
   - slug: payment-rules-002
     title: Payment amount integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3256,7 +3256,7 @@ menu:
     summary: ''
   - slug: payment-rules-003
     title: Payment method authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3265,7 +3265,7 @@ menu:
     summary: ''
   - slug: payment-rules-004
     title: Payment state transitions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3274,7 +3274,7 @@ menu:
     summary: ''
   - slug: payment-rules-005
     title: Payment retry behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3283,7 +3283,7 @@ menu:
     summary: ''
   - slug: payment-rules-006
     title: Payment confirmation trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3292,7 +3292,7 @@ menu:
     summary: ''
   - slug: payment-rules-007
     title: Payment event audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3304,7 +3304,7 @@ menu:
   childs:
   - slug: refund-rules-001
     title: Refund eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3313,7 +3313,7 @@ menu:
     summary: ''
   - slug: refund-rules-002
     title: Refund amount limit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3322,7 +3322,7 @@ menu:
     summary: ''
   - slug: refund-rules-003
     title: Partial refund policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3331,7 +3331,7 @@ menu:
     summary: ''
   - slug: refund-rules-004
     title: Refund approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3340,7 +3340,7 @@ menu:
     summary: ''
   - slug: refund-rules-005
     title: Refund idempotency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3349,7 +3349,7 @@ menu:
     summary: ''
   - slug: refund-rules-006
     title: Refund timing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3358,7 +3358,7 @@ menu:
     summary: ''
   - slug: refund-rules-007
     title: Refund audit entry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
   childs:
   - slug: chargeback-rules-001
     title: Chargeback case ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3379,7 +3379,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-002
     title: Chargeback evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3388,7 +3388,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-003
     title: Chargeback state
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3397,7 +3397,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-004
     title: Chargeback amount reconciliation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3406,7 +3406,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-005
     title: Chargeback response authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3415,7 +3415,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-006
     title: Chargeback notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3424,7 +3424,7 @@ menu:
     summary: ''
   - slug: chargeback-rules-007
     title: Chargeback audit history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
   childs:
   - slug: credit-rules-001
     title: Credit limit ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: credit-rules-002
     title: Credit allocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: credit-rules-003
     title: Credit consumption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: credit-rules-004
     title: Credit expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: credit-rules-005
     title: Credit reversal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: credit-rules-006
     title: Credit approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: credit-rules-007
     title: Credit ledger audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3502,7 +3502,7 @@ menu:
   childs:
   - slug: subscription-rules-001
     title: Subscription ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
     summary: ''
   - slug: subscription-rules-002
     title: Plan eligibility
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: subscription-rules-003
     title: Plan transition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
     summary: ''
   - slug: subscription-rules-004
     title: Renewal authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: subscription-rules-005
     title: Pause and resume policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: subscription-rules-006
     title: Cancellation timing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: subscription-rules-007
     title: Subscription audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3568,7 +3568,7 @@ menu:
   childs:
   - slug: entitlement-rules-001
     title: Entitlement grant
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3577,7 +3577,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-002
     title: Entitlement scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3586,7 +3586,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-003
     title: Entitlement expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3595,7 +3595,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-004
     title: Entitlement revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3604,7 +3604,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-005
     title: Entitlement inheritance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3613,7 +3613,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-006
     title: Entitlement cache freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3622,7 +3622,7 @@ menu:
     summary: ''
   - slug: entitlement-rules-007
     title: Entitlement decision audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3634,7 +3634,7 @@ menu:
   childs:
   - slug: quota-management-001
     title: Quota ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3643,7 +3643,7 @@ menu:
     summary: ''
   - slug: quota-management-002
     title: Quota allocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3652,7 +3652,7 @@ menu:
     summary: ''
   - slug: quota-management-003
     title: Quota consumption
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3661,7 +3661,7 @@ menu:
     summary: ''
   - slug: quota-management-004
     title: Quota reset period
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3670,7 +3670,7 @@ menu:
     summary: ''
   - slug: quota-management-005
     title: Quota overrun handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3679,7 +3679,7 @@ menu:
     summary: ''
   - slug: quota-management-006
     title: Quota delegation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3688,7 +3688,7 @@ menu:
     summary: ''
   - slug: quota-management-007
     title: Quota usage audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3700,7 +3700,7 @@ menu:
   childs:
   - slug: rate-policies-001
     title: Action frequency policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3709,7 +3709,7 @@ menu:
     summary: ''
   - slug: rate-policies-002
     title: Per account rate policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3718,7 +3718,7 @@ menu:
     summary: ''
   - slug: rate-policies-003
     title: Per tenant rate policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3727,7 +3727,7 @@ menu:
     summary: ''
   - slug: rate-policies-004
     title: Burst allowance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3736,7 +3736,7 @@ menu:
     summary: ''
   - slug: rate-policies-005
     title: Rate policy exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3745,7 +3745,7 @@ menu:
     summary: ''
   - slug: rate-policies-006
     title: Rate policy disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3754,7 +3754,7 @@ menu:
     summary: ''
   - slug: rate-policies-007
     title: Rate policy measurement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3766,7 +3766,7 @@ menu:
   childs:
   - slug: resource-allocation-001
     title: Scarce resource claim
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3775,7 +3775,7 @@ menu:
     summary: ''
   - slug: resource-allocation-002
     title: Allocation priority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3784,7 +3784,7 @@ menu:
     summary: ''
   - slug: resource-allocation-003
     title: Allocation fairness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3793,7 +3793,7 @@ menu:
     summary: ''
   - slug: resource-allocation-004
     title: Allocation expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3802,7 +3802,7 @@ menu:
     summary: ''
   - slug: resource-allocation-005
     title: Allocation release
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3811,7 +3811,7 @@ menu:
     summary: ''
   - slug: resource-allocation-006
     title: Allocation transfer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3820,7 +3820,7 @@ menu:
     summary: ''
   - slug: resource-allocation-007
     title: Allocation audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3832,7 +3832,7 @@ menu:
   childs:
   - slug: time-based-rules-001
     title: Business time source
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3841,7 +3841,7 @@ menu:
     summary: ''
   - slug: time-based-rules-002
     title: Time zone policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3850,7 +3850,7 @@ menu:
     summary: ''
   - slug: time-based-rules-003
     title: Business day calculation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3859,7 +3859,7 @@ menu:
     summary: ''
   - slug: time-based-rules-004
     title: Effective date boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3868,7 +3868,7 @@ menu:
     summary: ''
   - slug: time-based-rules-005
     title: Expiration boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3877,7 +3877,7 @@ menu:
     summary: ''
   - slug: time-based-rules-006
     title: Clock skew tolerance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3886,7 +3886,7 @@ menu:
     summary: ''
   - slug: time-based-rules-007
     title: Time rule testing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3898,7 +3898,7 @@ menu:
   childs:
   - slug: approval-limits-001
     title: Amount approval threshold
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3907,7 +3907,7 @@ menu:
     summary: ''
   - slug: approval-limits-002
     title: Quantity approval threshold
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3916,7 +3916,7 @@ menu:
     summary: ''
   - slug: approval-limits-003
     title: Role approval threshold
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3925,7 +3925,7 @@ menu:
     summary: ''
   - slug: approval-limits-004
     title: Threshold aggregation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3934,7 +3934,7 @@ menu:
     summary: ''
   - slug: approval-limits-005
     title: Threshold bypass prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3943,7 +3943,7 @@ menu:
     summary: ''
   - slug: approval-limits-006
     title: Threshold exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3952,7 +3952,7 @@ menu:
     summary: ''
   - slug: approval-limits-007
     title: Threshold change audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3964,7 +3964,7 @@ menu:
   childs:
   - slug: delegation-001
     title: Delegated authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3973,7 +3973,7 @@ menu:
     summary: ''
   - slug: delegation-002
     title: Delegation scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3982,7 +3982,7 @@ menu:
     summary: ''
   - slug: delegation-003
     title: Delegation start time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3991,7 +3991,7 @@ menu:
     summary: ''
   - slug: delegation-004
     title: Delegation end time
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4000,7 +4000,7 @@ menu:
     summary: ''
   - slug: delegation-005
     title: Delegation revocation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4009,7 +4009,7 @@ menu:
     summary: ''
   - slug: delegation-006
     title: Delegation chain
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4018,7 +4018,7 @@ menu:
     summary: ''
   - slug: delegation-007
     title: Delegation audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4030,7 +4030,7 @@ menu:
   childs:
   - slug: impersonation-001
     title: Support impersonation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4039,7 +4039,7 @@ menu:
     summary: ''
   - slug: impersonation-002
     title: Administrator impersonation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4048,7 +4048,7 @@ menu:
     summary: ''
   - slug: impersonation-003
     title: Impersonation consent
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4057,7 +4057,7 @@ menu:
     summary: ''
   - slug: impersonation-004
     title: Impersonation scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4066,7 +4066,7 @@ menu:
     summary: ''
   - slug: impersonation-005
     title: Impersonation banner
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4075,7 +4075,7 @@ menu:
     summary: ''
   - slug: impersonation-006
     title: Impersonation expiration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4084,7 +4084,7 @@ menu:
     summary: ''
   - slug: impersonation-007
     title: Impersonation audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4096,7 +4096,7 @@ menu:
   childs:
   - slug: emergency-actions-001
     title: Emergency action definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4105,7 +4105,7 @@ menu:
     summary: ''
   - slug: emergency-actions-002
     title: Emergency action authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4114,7 +4114,7 @@ menu:
     summary: ''
   - slug: emergency-actions-003
     title: Emergency action confirmation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4123,7 +4123,7 @@ menu:
     summary: ''
   - slug: emergency-actions-004
     title: Emergency action scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4132,7 +4132,7 @@ menu:
     summary: ''
   - slug: emergency-actions-005
     title: Emergency action expiry
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4141,7 +4141,7 @@ menu:
     summary: ''
   - slug: emergency-actions-006
     title: Emergency action notification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4150,7 +4150,7 @@ menu:
     summary: ''
   - slug: emergency-actions-007
     title: Emergency action review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4162,7 +4162,7 @@ menu:
   childs:
   - slug: background-jobs-001
     title: Job authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4171,7 +4171,7 @@ menu:
     summary: ''
   - slug: background-jobs-002
     title: Job input integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4180,7 +4180,7 @@ menu:
     summary: ''
   - slug: background-jobs-003
     title: Job retry safety
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4189,7 +4189,7 @@ menu:
     summary: ''
   - slug: background-jobs-004
     title: Job duplicate prevention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4198,7 +4198,7 @@ menu:
     summary: ''
   - slug: background-jobs-005
     title: Job cancellation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4207,7 +4207,7 @@ menu:
     summary: ''
   - slug: background-jobs-006
     title: Job failure escalation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4216,7 +4216,7 @@ menu:
     summary: ''
   - slug: background-jobs-007
     title: Job execution audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4228,7 +4228,7 @@ menu:
   childs:
   - slug: schedulers-001
     title: Scheduled action ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4237,7 +4237,7 @@ menu:
     summary: ''
   - slug: schedulers-002
     title: Schedule creation authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4246,7 +4246,7 @@ menu:
     summary: ''
   - slug: schedulers-003
     title: Schedule modification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4255,7 +4255,7 @@ menu:
     summary: ''
   - slug: schedulers-004
     title: Schedule time interpretation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4264,7 +4264,7 @@ menu:
     summary: ''
   - slug: schedulers-005
     title: Schedule overlap
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4273,7 +4273,7 @@ menu:
     summary: ''
   - slug: schedulers-006
     title: Schedule cancellation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4282,7 +4282,7 @@ menu:
     summary: ''
   - slug: schedulers-007
     title: Scheduled action audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4294,7 +4294,7 @@ menu:
   childs:
   - slug: message-security-001
     title: Message producer trust
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4303,7 +4303,7 @@ menu:
     summary: ''
   - slug: message-security-002
     title: Message consumer authorization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4312,7 +4312,7 @@ menu:
     summary: ''
   - slug: message-security-003
     title: Message schema integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4321,7 +4321,7 @@ menu:
     summary: ''
   - slug: message-security-004
     title: Message ordering
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4330,7 +4330,7 @@ menu:
     summary: ''
   - slug: message-security-005
     title: Message duplication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4339,7 +4339,7 @@ menu:
     summary: ''
   - slug: message-security-006
     title: Message dead letter handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4348,7 +4348,7 @@ menu:
     summary: ''
   - slug: message-security-007
     title: Message audit metadata
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4360,7 +4360,7 @@ menu:
   childs:
   - slug: webhooks-001
     title: Webhook endpoint ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4369,7 +4369,7 @@ menu:
     summary: ''
   - slug: webhooks-002
     title: Webhook signature validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4378,7 +4378,7 @@ menu:
     summary: ''
   - slug: webhooks-003
     title: Webhook event freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4387,7 +4387,7 @@ menu:
     summary: ''
   - slug: webhooks-004
     title: Webhook delivery retries
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4396,7 +4396,7 @@ menu:
     summary: ''
   - slug: webhooks-005
     title: Webhook duplicate delivery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4405,7 +4405,7 @@ menu:
     summary: ''
   - slug: webhooks-006
     title: Webhook response handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4414,7 +4414,7 @@ menu:
     summary: ''
   - slug: webhooks-007
     title: Webhook subscription audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4426,7 +4426,7 @@ menu:
   childs:
   - slug: partner-integrations-001
     title: Partner identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4435,7 +4435,7 @@ menu:
     summary: ''
   - slug: partner-integrations-002
     title: Partner capability scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4444,7 +4444,7 @@ menu:
     summary: ''
   - slug: partner-integrations-003
     title: Partner data ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4453,7 +4453,7 @@ menu:
     summary: ''
   - slug: partner-integrations-004
     title: Partner request validation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4462,7 +4462,7 @@ menu:
     summary: ''
   - slug: partner-integrations-005
     title: Partner failure isolation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4471,7 +4471,7 @@ menu:
     summary: ''
   - slug: partner-integrations-006
     title: Partner contract changes
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4480,7 +4480,7 @@ menu:
     summary: ''
   - slug: partner-integrations-007
     title: Partner action audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4492,7 +4492,7 @@ menu:
   childs:
   - slug: external-trust-001
     title: External verification source
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4501,7 +4501,7 @@ menu:
     summary: ''
   - slug: external-trust-002
     title: External status authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4510,7 +4510,7 @@ menu:
     summary: ''
   - slug: external-trust-003
     title: External reference integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4519,7 +4519,7 @@ menu:
     summary: ''
   - slug: external-trust-004
     title: External response freshness
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4528,7 +4528,7 @@ menu:
     summary: ''
   - slug: external-trust-005
     title: External outage behavior
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4537,7 +4537,7 @@ menu:
     summary: ''
   - slug: external-trust-006
     title: External disagreement handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4546,7 +4546,7 @@ menu:
     summary: ''
   - slug: external-trust-007
     title: External dependency audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4558,7 +4558,7 @@ menu:
   childs:
   - slug: notification-rules-001
     title: Notification recipient authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4567,7 +4567,7 @@ menu:
     summary: ''
   - slug: notification-rules-002
     title: Notification content policy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4576,7 +4576,7 @@ menu:
     summary: ''
   - slug: notification-rules-003
     title: Notification timing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4585,7 +4585,7 @@ menu:
     summary: ''
   - slug: notification-rules-004
     title: Notification deduplication
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4594,7 +4594,7 @@ menu:
     summary: ''
   - slug: notification-rules-005
     title: Notification suppression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4603,7 +4603,7 @@ menu:
     summary: ''
   - slug: notification-rules-006
     title: Notification delivery failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4612,7 +4612,7 @@ menu:
     summary: ''
   - slug: notification-rules-007
     title: Notification history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4624,7 +4624,7 @@ menu:
   childs:
   - slug: email-business-rules-001
     title: Email change authority
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4633,7 +4633,7 @@ menu:
     summary: ''
   - slug: email-business-rules-002
     title: Email ownership signal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4642,7 +4642,7 @@ menu:
     summary: ''
   - slug: email-business-rules-003
     title: Email invitation lifecycle
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4651,7 +4651,7 @@ menu:
     summary: ''
   - slug: email-business-rules-004
     title: Email recipient privacy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4660,7 +4660,7 @@ menu:
     summary: ''
   - slug: email-business-rules-005
     title: Email link action scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4669,7 +4669,7 @@ menu:
     summary: ''
   - slug: email-business-rules-006
     title: Email bounce consequence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4678,7 +4678,7 @@ menu:
     summary: ''
   - slug: email-business-rules-007
     title: Email action audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4690,7 +4690,7 @@ menu:
   childs:
   - slug: support-operations-001
     title: Support case ownership
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4699,7 +4699,7 @@ menu:
     summary: ''
   - slug: support-operations-002
     title: Support action permissions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4708,7 +4708,7 @@ menu:
     summary: ''
   - slug: support-operations-003
     title: Support evidence requirements
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4717,7 +4717,7 @@ menu:
     summary: ''
   - slug: support-operations-004
     title: Support customer disclosure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4726,7 +4726,7 @@ menu:
     summary: ''
   - slug: support-operations-005
     title: Support escalation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4735,7 +4735,7 @@ menu:
     summary: ''
   - slug: support-operations-006
     title: Support override duration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4744,7 +4744,7 @@ menu:
     summary: ''
   - slug: support-operations-007
     title: Support operation audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4756,7 +4756,7 @@ menu:
   childs:
   - slug: administrative-controls-001
     title: Administrator action scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4765,7 +4765,7 @@ menu:
     summary: ''
   - slug: administrative-controls-002
     title: Administrative approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4774,7 +4774,7 @@ menu:
     summary: ''
   - slug: administrative-controls-003
     title: Administrative dual control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4783,7 +4783,7 @@ menu:
     summary: ''
   - slug: administrative-controls-004
     title: Administrative emergency path
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4792,7 +4792,7 @@ menu:
     summary: ''
   - slug: administrative-controls-005
     title: Administrative session limits
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4801,7 +4801,7 @@ menu:
     summary: ''
   - slug: administrative-controls-006
     title: Administrative change review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4810,7 +4810,7 @@ menu:
     summary: ''
   - slug: administrative-controls-007
     title: Administrative audit export
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4822,7 +4822,7 @@ menu:
   childs:
   - slug: fraud-detection-001
     title: Fraud signal collection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4831,7 +4831,7 @@ menu:
     summary: ''
   - slug: fraud-detection-002
     title: Fraud rule evaluation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4840,7 +4840,7 @@ menu:
     summary: ''
   - slug: fraud-detection-003
     title: Fraud decision confidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4849,7 +4849,7 @@ menu:
     summary: ''
   - slug: fraud-detection-004
     title: Fraud review queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4858,7 +4858,7 @@ menu:
     summary: ''
   - slug: fraud-detection-005
     title: Fraud false positive handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4867,7 +4867,7 @@ menu:
     summary: ''
   - slug: fraud-detection-006
     title: Fraud case resolution
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4876,7 +4876,7 @@ menu:
     summary: ''
   - slug: fraud-detection-007
     title: Fraud decision audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4888,7 +4888,7 @@ menu:
   childs:
   - slug: anomaly-detection-001
     title: Normal behavior baseline
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4897,7 +4897,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-002
     title: Anomalous transaction pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4906,7 +4906,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-003
     title: Anomalous velocity pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4915,7 +4915,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-004
     title: Anomalous location pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4924,7 +4924,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-005
     title: Anomalous device pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4933,7 +4933,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-006
     title: Anomaly investigation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4942,7 +4942,7 @@ menu:
     summary: ''
   - slug: anomaly-detection-007
     title: Anomaly rule tuning
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4954,7 +4954,7 @@ menu:
   childs:
   - slug: abuse-controls-001
     title: Feature abuse threshold
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4963,7 +4963,7 @@ menu:
     summary: ''
   - slug: abuse-controls-002
     title: Automated abuse detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4972,7 +4972,7 @@ menu:
     summary: ''
   - slug: abuse-controls-003
     title: Human abuse review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4981,7 +4981,7 @@ menu:
     summary: ''
   - slug: abuse-controls-004
     title: Progressive friction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4990,7 +4990,7 @@ menu:
     summary: ''
   - slug: abuse-controls-005
     title: Temporary action block
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -4999,7 +4999,7 @@ menu:
     summary: ''
   - slug: abuse-controls-006
     title: Permanent account restriction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5008,7 +5008,7 @@ menu:
     summary: ''
   - slug: abuse-controls-007
     title: Abuse control appeal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5020,7 +5020,7 @@ menu:
   childs:
   - slug: rate-limit-abuse-001
     title: Credential testing velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5029,7 +5029,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-002
     title: Coupon testing velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5038,7 +5038,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-003
     title: Inventory claim velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5047,7 +5047,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-004
     title: Payment retry velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5056,7 +5056,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-005
     title: Export request velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5065,7 +5065,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-006
     title: Support request velocity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5074,7 +5074,7 @@ menu:
     summary: ''
   - slug: rate-limit-abuse-007
     title: Velocity signal correlation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5086,7 +5086,7 @@ menu:
   childs:
   - slug: privacy-rules-001
     title: Purpose limitation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5095,7 +5095,7 @@ menu:
     summary: ''
   - slug: privacy-rules-002
     title: Data minimization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5104,7 +5104,7 @@ menu:
     summary: ''
   - slug: privacy-rules-003
     title: Sensitive field masking
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5113,7 +5113,7 @@ menu:
     summary: ''
   - slug: privacy-rules-004
     title: Purpose based access
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5122,7 +5122,7 @@ menu:
     summary: ''
   - slug: privacy-rules-005
     title: Retention boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5131,7 +5131,7 @@ menu:
     summary: ''
   - slug: privacy-rules-006
     title: Deletion consequence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5140,7 +5140,7 @@ menu:
     summary: ''
   - slug: privacy-rules-007
     title: Privacy decision audit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5152,7 +5152,7 @@ menu:
   childs:
   - slug: consent-rules-001
     title: Consent capture
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5161,7 +5161,7 @@ menu:
     summary: ''
   - slug: consent-rules-002
     title: Consent version
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5170,7 +5170,7 @@ menu:
     summary: ''
   - slug: consent-rules-003
     title: Consent scope
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5179,7 +5179,7 @@ menu:
     summary: ''
   - slug: consent-rules-004
     title: Consent withdrawal
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5188,7 +5188,7 @@ menu:
     summary: ''
   - slug: consent-rules-005
     title: Consent proof
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5197,7 +5197,7 @@ menu:
     summary: ''
   - slug: consent-rules-006
     title: Consent dependent feature
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5206,7 +5206,7 @@ menu:
     summary: ''
   - slug: consent-rules-007
     title: Consent audit history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5218,7 +5218,7 @@ menu:
   childs:
   - slug: auditability-001
     title: Critical action taxonomy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5227,7 +5227,7 @@ menu:
     summary: ''
   - slug: auditability-002
     title: Business reason recording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5236,7 +5236,7 @@ menu:
     summary: ''
   - slug: auditability-003
     title: Actor context recording
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5245,7 +5245,7 @@ menu:
     summary: ''
   - slug: auditability-004
     title: Before and after values
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5254,7 +5254,7 @@ menu:
     summary: ''
   - slug: auditability-005
     title: Audit event integrity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5263,7 +5263,7 @@ menu:
     summary: ''
   - slug: auditability-006
     title: Audit access control
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5272,7 +5272,7 @@ menu:
     summary: ''
   - slug: auditability-007
     title: Audit retention
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5284,7 +5284,7 @@ menu:
   childs:
   - slug: observability-001
     title: Business outcome metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5293,7 +5293,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Rule decision metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5302,7 +5302,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Denied action metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5311,7 +5311,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Conflict metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5320,7 +5320,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Abuse metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5329,7 +5329,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Dependency health metric
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5338,7 +5338,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Sensitive telemetry handling
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5350,7 +5350,7 @@ menu:
   childs:
   - slug: error-semantics-001
     title: Business rejection response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5359,7 +5359,7 @@ menu:
     summary: ''
   - slug: error-semantics-002
     title: Authorization failure response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5368,7 +5368,7 @@ menu:
     summary: ''
   - slug: error-semantics-003
     title: Conflict response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5377,7 +5377,7 @@ menu:
     summary: ''
   - slug: error-semantics-004
     title: Expired operation response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5386,7 +5386,7 @@ menu:
     summary: ''
   - slug: error-semantics-005
     title: Duplicate operation response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5395,7 +5395,7 @@ menu:
     summary: ''
   - slug: error-semantics-006
     title: Retryable failure response
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5404,7 +5404,7 @@ menu:
     summary: ''
   - slug: error-semantics-007
     title: Error disclosure boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5416,7 +5416,7 @@ menu:
   childs:
   - slug: user-experience-001
     title: Secure default action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5425,7 +5425,7 @@ menu:
     summary: ''
   - slug: user-experience-002
     title: Clear rule explanation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5434,7 +5434,7 @@ menu:
     summary: ''
   - slug: user-experience-003
     title: Safe retry guidance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5443,7 +5443,7 @@ menu:
     summary: ''
   - slug: user-experience-004
     title: Confirmation for risky action
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5452,7 +5452,7 @@ menu:
     summary: ''
   - slug: user-experience-005
     title: Cancellation affordance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5461,7 +5461,7 @@ menu:
     summary: ''
   - slug: user-experience-006
     title: Recovery from rejection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5470,7 +5470,7 @@ menu:
     summary: ''
   - slug: user-experience-007
     title: User visible audit context
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5482,7 +5482,7 @@ menu:
   childs:
   - slug: testing-strategy-001
     title: Business rule unit tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5491,7 +5491,7 @@ menu:
     summary: ''
   - slug: testing-strategy-002
     title: Workflow integration tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5500,7 +5500,7 @@ menu:
     summary: ''
   - slug: testing-strategy-003
     title: Authorization matrix tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5509,7 +5509,7 @@ menu:
     summary: ''
   - slug: testing-strategy-004
     title: Concurrency regression tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5518,7 +5518,7 @@ menu:
     summary: ''
   - slug: testing-strategy-005
     title: Financial calculation tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5527,7 +5527,7 @@ menu:
     summary: ''
   - slug: testing-strategy-006
     title: Abuse scenario tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5536,7 +5536,7 @@ menu:
     summary: ''
   - slug: testing-strategy-007
     title: Production parity test data
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5548,7 +5548,7 @@ menu:
   childs:
   - slug: property-testing-001
     title: Invariant property tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5557,7 +5557,7 @@ menu:
     summary: ''
   - slug: property-testing-002
     title: Transition property tests
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5566,7 +5566,7 @@ menu:
     summary: ''
   - slug: property-testing-003
     title: Amount conservation property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5575,7 +5575,7 @@ menu:
     summary: ''
   - slug: property-testing-004
     title: Quota conservation property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5584,7 +5584,7 @@ menu:
     summary: ''
   - slug: property-testing-005
     title: Idempotency property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5593,7 +5593,7 @@ menu:
     summary: ''
   - slug: property-testing-006
     title: Authorization monotonicity property
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5602,7 +5602,7 @@ menu:
     summary: ''
   - slug: property-testing-007
     title: Property shrinking strategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5614,7 +5614,7 @@ menu:
   childs:
   - slug: security-testing-001
     title: Parameter tampering test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5623,7 +5623,7 @@ menu:
     summary: ''
   - slug: security-testing-002
     title: Workflow skipping test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5632,7 +5632,7 @@ menu:
     summary: ''
   - slug: security-testing-003
     title: Object ownership test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5641,7 +5641,7 @@ menu:
     summary: ''
   - slug: security-testing-004
     title: Race condition test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5650,7 +5650,7 @@ menu:
     summary: ''
   - slug: security-testing-005
     title: Replay attack test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5659,7 +5659,7 @@ menu:
     summary: ''
   - slug: security-testing-006
     title: Privilege escalation test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5668,7 +5668,7 @@ menu:
     summary: ''
   - slug: security-testing-007
     title: Business impact test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5680,7 +5680,7 @@ menu:
   childs:
   - slug: load-testing-001
     title: Concurrent claim load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5689,7 +5689,7 @@ menu:
     summary: ''
   - slug: load-testing-002
     title: Concurrent payment load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5698,7 +5698,7 @@ menu:
     summary: ''
   - slug: load-testing-003
     title: Promotion peak load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5707,7 +5707,7 @@ menu:
     summary: ''
   - slug: load-testing-004
     title: Quota reset load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5716,7 +5716,7 @@ menu:
     summary: ''
   - slug: load-testing-005
     title: Queue backlog load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5725,7 +5725,7 @@ menu:
     summary: ''
   - slug: load-testing-006
     title: Rate limiter load
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5734,7 +5734,7 @@ menu:
     summary: ''
   - slug: load-testing-007
     title: Load test integrity checks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5746,7 +5746,7 @@ menu:
   childs:
   - slug: failure-testing-001
     title: Database failure scenario
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5755,7 +5755,7 @@ menu:
     summary: ''
   - slug: failure-testing-002
     title: Payment provider failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5764,7 +5764,7 @@ menu:
     summary: ''
   - slug: failure-testing-003
     title: Notification provider failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5773,7 +5773,7 @@ menu:
     summary: ''
   - slug: failure-testing-004
     title: Message duplication failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5782,7 +5782,7 @@ menu:
     summary: ''
   - slug: failure-testing-005
     title: Clock failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5791,7 +5791,7 @@ menu:
     summary: ''
   - slug: failure-testing-006
     title: Partial transaction failure
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5800,7 +5800,7 @@ menu:
     summary: ''
   - slug: failure-testing-007
     title: Recovery reconciliation test
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5812,7 +5812,7 @@ menu:
   childs:
   - slug: incident-response-001
     title: Business rule incident detection
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5821,7 +5821,7 @@ menu:
     summary: ''
   - slug: incident-response-002
     title: Emergency feature disablement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5830,7 +5830,7 @@ menu:
     summary: ''
   - slug: incident-response-003
     title: Transaction freeze
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5839,7 +5839,7 @@ menu:
     summary: ''
   - slug: incident-response-004
     title: Unauthorized action review
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5848,7 +5848,7 @@ menu:
     summary: ''
   - slug: incident-response-005
     title: Affected user identification
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5857,7 +5857,7 @@ menu:
     summary: ''
   - slug: incident-response-006
     title: Evidence preservation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5866,7 +5866,7 @@ menu:
     summary: ''
   - slug: incident-response-007
     title: Post incident rule correction
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5878,7 +5878,7 @@ menu:
   childs:
   - slug: compliance-001
     title: Control objective mapping
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5887,7 +5887,7 @@ menu:
     summary: ''
   - slug: compliance-002
     title: Financial control evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5896,7 +5896,7 @@ menu:
     summary: ''
   - slug: compliance-003
     title: Segregation control evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5905,7 +5905,7 @@ menu:
     summary: ''
   - slug: compliance-004
     title: Privacy control evidence
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5914,7 +5914,7 @@ menu:
     summary: ''
   - slug: compliance-005
     title: Retention obligation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5923,7 +5923,7 @@ menu:
     summary: ''
   - slug: compliance-006
     title: Regional rule variation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5932,7 +5932,7 @@ menu:
     summary: ''
   - slug: compliance-007
     title: Compliance exception approval
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5944,7 +5944,7 @@ menu:
   childs:
   - slug: documentation-001
     title: Business rule catalog
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5953,7 +5953,7 @@ menu:
     summary: ''
   - slug: documentation-002
     title: State transition documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5962,7 +5962,7 @@ menu:
     summary: ''
   - slug: documentation-003
     title: Authorization matrix documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5971,7 +5971,7 @@ menu:
     summary: ''
   - slug: documentation-004
     title: Approval policy documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5980,7 +5980,7 @@ menu:
     summary: ''
   - slug: documentation-005
     title: Exception documentation
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5989,7 +5989,7 @@ menu:
     summary: ''
   - slug: documentation-006
     title: Operational runbook
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -5998,7 +5998,7 @@ menu:
     summary: ''
   - slug: documentation-007
     title: Rule change history
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6010,7 +6010,7 @@ menu:
   childs:
   - slug: spring-security-integration-001
     title: Spring authorization boundary
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6019,7 +6019,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-002
     title: Method security for commands
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6028,7 +6028,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-003
     title: SecurityContext actor identity
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6037,7 +6037,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-004
     title: Authorization event listeners
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6046,7 +6046,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-005
     title: Transaction authorization checks
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6055,7 +6055,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-006
     title: Spring Security test support
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6064,7 +6064,7 @@ menu:
     summary: ''
   - slug: spring-security-integration-007
     title: Application service enforcement
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6076,7 +6076,7 @@ menu:
   childs:
   - slug: implementation-patterns-001
     title: Policy object pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6085,7 +6085,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-002
     title: Specification pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6094,7 +6094,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-003
     title: Command handler pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6103,7 +6103,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-004
     title: State machine pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6112,7 +6112,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-005
     title: Domain service pattern
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6121,7 +6121,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-006
     title: Authorization decision object
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6130,7 +6130,7 @@ menu:
     summary: ''
   - slug: implementation-patterns-007
     title: Explicit rule composition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6142,7 +6142,7 @@ menu:
   childs:
   - slug: deployment-operations-001
     title: Business rule configuration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6151,7 +6151,7 @@ menu:
     summary: ''
   - slug: deployment-operations-002
     title: Feature flag safety
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6160,7 +6160,7 @@ menu:
     summary: ''
   - slug: deployment-operations-003
     title: Rule rollout sequencing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6169,7 +6169,7 @@ menu:
     summary: ''
   - slug: deployment-operations-004
     title: Backward compatible rule change
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6178,7 +6178,7 @@ menu:
     summary: ''
   - slug: deployment-operations-005
     title: Database migration safety
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6187,7 +6187,7 @@ menu:
     summary: ''
   - slug: deployment-operations-006
     title: Rollback after rule defect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6196,7 +6196,7 @@ menu:
     summary: ''
   - slug: deployment-operations-007
     title: Production rule checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6208,7 +6208,7 @@ menu:
   childs:
   - slug: security-checklists-001
     title: New feature security checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6217,7 +6217,7 @@ menu:
     summary: ''
   - slug: security-checklists-002
     title: New workflow security checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6226,7 +6226,7 @@ menu:
     summary: ''
   - slug: security-checklists-003
     title: New payment security checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6235,7 +6235,7 @@ menu:
     summary: ''
   - slug: security-checklists-004
     title: New integration security checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6244,7 +6244,7 @@ menu:
     summary: ''
   - slug: security-checklists-005
     title: New administrative action checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6253,7 +6253,7 @@ menu:
     summary: ''
   - slug: security-checklists-006
     title: Release review checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -6262,7 +6262,7 @@ menu:
     summary: ''
   - slug: security-checklists-007
     title: Business logic audit checklist
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''

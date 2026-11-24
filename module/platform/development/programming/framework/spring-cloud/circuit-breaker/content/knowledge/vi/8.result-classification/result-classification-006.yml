@@ -1,3 +1,3 @@
 menuLevel1: Phân loại kết quả
 menuLevel2: Chuyển HTTP status thành lỗi trước khi Circuit Breaker ghi nhận
-status: ''
+status: WRITTEN

@@ -4,7 +4,7 @@ menu:
   childs:
   - slug: overview-001
     title: Spring Cloud Stream là gì và giải quyết bài toán nào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -13,7 +13,7 @@ menu:
     summary: ''
   - slug: overview-002
     title: Từ lời gọi đồng bộ đến xử lý dựa trên sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -22,7 +22,7 @@ menu:
     summary: ''
   - slug: overview-003
     title: Phân biệt thông điệp, sự kiện và lệnh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -31,7 +31,7 @@ menu:
     summary: ''
   - slug: overview-004
     title: Vai trò bên phát, bên nhận và hệ thống môi giới thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -40,7 +40,7 @@ menu:
     summary: ''
   - slug: overview-005
     title: Mối quan hệ giữa hàm xử lý, binding, binder và destination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -49,7 +49,7 @@ menu:
     summary: ''
   - slug: overview-006
     title: Spring Cloud Stream trong hệ sinh thái Spring Boot, Spring Cloud Function và Spring Integration
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -58,7 +58,7 @@ menu:
     summary: ''
   - slug: overview-007
     title: So sánh với Spring for Apache Kafka, Spring AMQP và Kafka Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -67,7 +67,7 @@ menu:
     summary: ''
   - slug: overview-008
     title: Trường hợp nên dùng, giới hạn trừu tượng hóa và chi phí vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -76,7 +76,7 @@ menu:
     summary: ''
   - slug: overview-009
     title: Kiến thức tiên quyết và trình tự học từ ứng dụng đầu tiên đến vận hành
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -88,7 +88,7 @@ menu:
   childs:
   - slug: messaging-fundamentals-001
     title: Hàng đợi, chủ đề và mô hình điểm tới điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -97,7 +97,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-002
     title: Phát hành và đăng ký nhận thông điệp (publish-subscribe)
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -106,7 +106,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-003
     title: Nhận cạnh tranh trong cùng nhóm và nhận độc lập giữa các nhóm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -115,7 +115,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-004
     title: Lưu giữ thông điệp, thuê bao bền vững và thời gian tồn tại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -124,7 +124,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-005
     title: Xác nhận gửi, xác nhận nhận và hoàn tất xử lý nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -133,7 +133,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-006
     title: Ngữ nghĩa giao nhận at-most-once, at-least-once và exactly-once
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -142,7 +142,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-007
     title: Thứ tự thông điệp, xử lý song song và phạm vi bảo đảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -151,7 +151,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-008
     title: Thông điệp trùng lặp, đến muộn và không đúng thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -160,7 +160,7 @@ menu:
     summary: ''
   - slug: messaging-fundamentals-009
     title: Tính nhất quán cuối cùng và các điểm lỗi trên đường truyền
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -172,7 +172,7 @@ menu:
   childs:
   - slug: getting-started-001
     title: Chọn Java, Spring Boot, Spring Cloud BOM và phiên bản Stream tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -181,7 +181,7 @@ menu:
     summary: ''
   - slug: getting-started-002
     title: Thiết lập Maven hoặc Gradle và quản lý phiên bản phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -190,7 +190,7 @@ menu:
     summary: ''
   - slug: getting-started-003
     title: Chọn thư viện lõi, binder và thư viện kiểm thử
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -199,7 +199,7 @@ menu:
     summary: ''
   - slug: getting-started-004
     title: Chuẩn bị Kafka hoặc RabbitMQ cục bộ bằng Docker Compose
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -208,7 +208,7 @@ menu:
     summary: ''
   - slug: getting-started-005
     title: Xây dựng ứng dụng phát, biến đổi và nhận thông điệp đầu tiên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -217,7 +217,7 @@ menu:
     summary: ''
   - slug: getting-started-006
     title: Cấu hình application.yml và chạy thử luồng đầu cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -226,7 +226,7 @@ menu:
     summary: ''
   - slug: getting-started-007
     title: Quan sát tài nguyên được tạo trên broker và đối chiếu kết quả
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -235,7 +235,7 @@ menu:
     summary: ''
   - slug: getting-started-008
     title: Tách cấu hình theo môi trường bằng profile và biến môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -244,7 +244,7 @@ menu:
     summary: ''
   - slug: getting-started-009
     title: Kiểm tra dependency tree và xử lý xung đột thư viện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -256,7 +256,7 @@ menu:
   childs:
   - slug: architecture-001
     title: Tách nghiệp vụ xử lý khỏi mã kết nối hệ thống truyền tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -265,7 +265,7 @@ menu:
     summary: ''
   - slug: architecture-002
     title: Đường đi của thông điệp qua hàm, kênh và binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -274,7 +274,7 @@ menu:
     summary: ''
   - slug: architecture-003
     title: Binding đầu vào, binding đầu ra và tài nguyên vật lý trên broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -283,7 +283,7 @@ menu:
     summary: ''
   - slug: architecture-004
     title: Vai trò Spring Messaging và MessageChannel
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -292,7 +292,7 @@ menu:
     summary: ''
   - slug: architecture-005
     title: Binder SPI, Binding và bộ phận cấp phát tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -301,7 +301,7 @@ menu:
     summary: ''
   - slug: architecture-006
     title: Tự động cấu hình và phát hiện binder trên classpath
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -310,7 +310,7 @@ menu:
     summary: ''
   - slug: architecture-007
     title: Vòng đời khởi tạo, liên kết, hủy liên kết và dừng ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -319,7 +319,7 @@ menu:
     summary: ''
   - slug: architecture-008
     title: Phân biệt cấu hình dùng chung với khả năng riêng của từng binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -331,7 +331,7 @@ menu:
   childs:
   - slug: functional-programming-model-001
     title: Khai báo Supplier, Function và Consumer bằng @Bean
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -340,7 +340,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-002
     title: Xác định kiểu đầu vào, đầu ra và kiểu tham số tổng quát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -349,7 +349,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-003
     title: Chọn hàm hoạt động bằng spring.cloud.function.definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -358,7 +358,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-004
     title: Tự phát hiện hàm và kiểm soát function.autodetect
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -367,7 +367,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-005
     title: Xử lý payload trực tiếp và xử lý Message<T>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -376,7 +376,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-006
     title: Trả kết quả, thay đổi kiểu dữ liệu và xử lý không có đầu ra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -385,7 +385,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-007
     title: Gọi service nghiệp vụ từ hàm và quản lý phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -394,7 +394,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-008
     title: Giữ hàm không trạng thái và tránh trạng thái dùng chung không an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -403,7 +403,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-009
     title: Phân biệt nhiều hàm độc lập với một chuỗi hàm xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -412,7 +412,7 @@ menu:
     summary: ''
   - slug: functional-programming-model-010
     title: Kiểm chứng hàm nghiệp vụ độc lập với Spring và broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -424,7 +424,7 @@ menu:
   childs:
   - slug: bindings-and-configuration-001
     title: Quy tắc tên <function>-in-<index> và <function>-out-<index>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -433,7 +433,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-002
     title: Ánh xạ tên binding bằng spring.cloud.stream.function.bindings
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -442,7 +442,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-003
     title: Phân biệt tên bean, tên binding và tên destination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -451,7 +451,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-004
     title: Cấu hình destination, group, binder và contentType
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -460,7 +460,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-005
     title: Thuộc tính chung, thuộc tính producer và thuộc tính consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -469,7 +469,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-006
     title: Cấu hình mặc định và ghi đè theo từng binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -478,7 +478,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-007
     title: Thuộc tính mở rộng theo namespace Kafka, RabbitMQ và Pulsar
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -487,7 +487,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-008
     title: Khai báo binding tường minh bằng input-bindings và output-bindings
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -496,7 +496,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-009
     title: Điều khiển autoStartup và xử lý lỗi liên kết lúc khởi động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -505,7 +505,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-010
     title: Quy tắc đặt tên và quản lý cấu hình giữa các môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -514,7 +514,7 @@ menu:
     summary: ''
   - slug: bindings-and-configuration-011
     title: Đọc cấu hình hiệu lực và chẩn đoán sai tên hoặc sai cấp thuộc tính
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -526,7 +526,7 @@ menu:
   childs:
   - slug: messages-and-headers-001
     title: 'Cấu trúc Message<T>: payload, header và tính bất biến'
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -535,7 +535,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-002
     title: Tạo và sao chép thông điệp bằng MessageBuilder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -544,7 +544,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-003
     title: Header contentType, id và timestamp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -553,7 +553,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-004
     title: Mã sự kiện, mã tương quan và mã nguyên nhân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -562,7 +562,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-005
     title: Header nghiệp vụ và thông tin phiên bản sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -571,7 +571,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-006
     title: Ánh xạ header giữa Spring Messaging và giao thức broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -580,7 +580,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-007
     title: Giữ, bổ sung và loại bỏ header khi biến đổi thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -589,7 +589,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-008
     title: Giới hạn kích thước header và tránh truyền dữ liệu nhạy cảm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -598,7 +598,7 @@ menu:
     summary: ''
   - slug: messages-and-headers-009
     title: Phân biệt header do ứng dụng tạo với metadata do broker cung cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -610,7 +610,7 @@ menu:
   childs:
   - slug: data-conversion-001
     title: Vai trò contentType và kiểu tham số trong chuyển đổi thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -619,7 +619,7 @@ menu:
     summary: ''
   - slug: data-conversion-002
     title: Thứ tự lựa chọn contentType từ header, binding và mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -628,7 +628,7 @@ menu:
     summary: ''
   - slug: data-conversion-003
     title: Chuyển đổi JSON sang POJO hoặc Java record
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -637,7 +637,7 @@ menu:
     summary: ''
   - slug: data-conversion-004
     title: Xử lý String, byte[] và dữ liệu nhị phân
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -646,7 +646,7 @@ menu:
     summary: ''
   - slug: data-conversion-005
     title: Cơ chế chọn MessageConverter và đăng ký bộ chuyển đổi riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -655,7 +655,7 @@ menu:
     summary: ''
   - slug: data-conversion-006
     title: Giới hạn suy luận kiểu với Object, collection và kiểu tổng quát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -664,7 +664,7 @@ menu:
     summary: ''
   - slug: data-conversion-007
     title: Phân biệt chuyển đổi của framework với serialization của broker client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -673,7 +673,7 @@ menu:
     summary: ''
   - slug: data-conversion-008
     title: Cấu hình useNativeEncoding và useNativeDecoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -682,7 +682,7 @@ menu:
     summary: ''
   - slug: data-conversion-009
     title: Đồng bộ serializer và deserializer giữa bên phát và bên nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -691,7 +691,7 @@ menu:
     summary: ''
   - slug: data-conversion-010
     title: Nhận diện lỗi contentType, dữ liệu sai định dạng và lỗi kiểu dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -703,7 +703,7 @@ menu:
   childs:
   - slug: schemas-and-contracts-001
     title: Thiết kế hợp đồng sự kiện độc lập với mô hình lưu trữ nội bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -712,7 +712,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-002
     title: Chọn JSON, Avro hoặc Protobuf theo yêu cầu tương tác
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -721,7 +721,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-003
     title: Vai trò Schema Registry và lựa chọn cơ chế tích hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -730,7 +730,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-004
     title: Đăng ký schema, định danh schema và tra cứu khi nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -739,7 +739,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-005
     title: Tích hợp Avro MessageConverter hoặc native Serde theo binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -748,7 +748,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-006
     title: Tương thích ngược, tương thích xuôi và thay đổi phá vỡ hợp đồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -757,7 +757,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-007
     title: Thêm trường, đổi tên trường và xử lý giá trị mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -766,7 +766,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-008
     title: Quản lý phiên bản sự kiện và triển khai nhiều phiên bản song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -775,7 +775,7 @@ menu:
     summary: ''
   - slug: schemas-and-contracts-009
     title: Kiểm thử hợp đồng với bên phát và bên nhận khác ngôn ngữ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -787,7 +787,7 @@ menu:
   childs:
   - slug: message-producers-001
     title: Tạo thông điệp định kỳ bằng Supplier
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -796,7 +796,7 @@ menu:
     summary: ''
   - slug: message-producers-002
     title: Cấu hình fixedDelay, initialDelay, cron và maxMessagesPerPoll
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -805,7 +805,7 @@ menu:
     summary: ''
   - slug: message-producers-003
     title: Cấu hình poller riêng cho từng output binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -814,7 +814,7 @@ menu:
     summary: ''
   - slug: message-producers-004
     title: Supplier trả một phần tử và Supplier trả luồng Flux
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -823,7 +823,7 @@ menu:
     summary: ''
   - slug: message-producers-005
     title: Sử dụng @PollableBean cho nguồn trả luồng hữu hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -832,7 +832,7 @@ menu:
     summary: ''
   - slug: message-producers-006
     title: Điều khiển tách phần tử bằng thuộc tính splittable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -841,7 +841,7 @@ menu:
     summary: ''
   - slug: message-producers-007
     title: Đọc nguồn dữ liệu ngoài và quản lý mốc đọc an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -850,7 +850,7 @@ menu:
     summary: ''
   - slug: message-producers-008
     title: Xử lý nguồn không có dữ liệu và lỗi phát sinh khi lấy dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -862,7 +862,7 @@ menu:
   childs:
   - slug: streambridge-001
     title: Vai trò StreamBridge khi phát thông điệp từ nguồn bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -871,7 +871,7 @@ menu:
     summary: ''
   - slug: streambridge-002
     title: Phát sự kiện từ REST, lịch chạy và service nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -880,7 +880,7 @@ menu:
     summary: ''
   - slug: streambridge-003
     title: Gửi POJO hoặc Message và chỉ định contentType
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -889,7 +889,7 @@ menu:
     summary: ''
   - slug: streambridge-004
     title: Tạo sẵn output binding và tạo binding khi gửi lần đầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -898,7 +898,7 @@ menu:
     summary: ''
   - slug: streambridge-005
     title: Phân biệt binding có sẵn với destination động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -907,7 +907,7 @@ menu:
     summary: ''
   - slug: streambridge-006
     title: Giới hạn bộ nhớ đệm destination động và kiểm soát số lượng đích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -916,7 +916,7 @@ menu:
     summary: ''
   - slug: streambridge-007
     title: Chọn binder khi có nhiều hệ thống truyền tin
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -925,7 +925,7 @@ menu:
     summary: ''
   - slug: streambridge-008
     title: Diễn giải kết quả send và phân biệt với xác nhận của broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -934,7 +934,7 @@ menu:
     summary: ''
   - slug: streambridge-009
     title: Chế độ gửi bất đồng bộ và truyền ngữ cảnh theo phiên bản hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -943,7 +943,7 @@ menu:
     summary: ''
   - slug: streambridge-010
     title: Áp dụng ChannelInterceptor và kiểm thử qua StreamOperations
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -955,7 +955,7 @@ menu:
   childs:
   - slug: function-composition-and-routing-001
     title: Ghép hàm bằng toán tử | và khai báo nhiều hàm bằng dấu ;
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -964,7 +964,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-002
     title: Tên binding và cấu hình đầu cuối của hàm ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -973,7 +973,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-003
     title: Phân biệt ghép trong tiến trình với nối ứng dụng qua broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -982,7 +982,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-004
     title: Biến đổi, lọc và làm giàu dữ liệu trong chuỗi xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -991,7 +991,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-005
     title: Định tuyến đến hàm bằng functionRouter và biểu thức định tuyến
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1000,7 +1000,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-006
     title: Giới hạn định tuyến theo từng thông điệp với mô hình phản ứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1009,7 +1009,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-007
     title: Định tuyến đầu ra bằng StreamBridge và destination động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1018,7 +1018,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-008
     title: Nhiều đầu vào hoặc đầu ra với kiểu hàm được hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1027,7 +1027,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-009
     title: Kiểm tra tương thích kiểu và header khi ghép hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1036,7 +1036,7 @@ menu:
     summary: ''
   - slug: function-composition-and-routing-010
     title: Kiểm soát đích được phép và biểu thức định tuyến từ dữ liệu bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1048,7 +1048,7 @@ menu:
   childs:
   - slug: consumer-groups-001
     title: Consumer group và cơ chế phân phối thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1057,7 +1057,7 @@ menu:
     summary: ''
   - slug: consumer-groups-002
     title: Cùng nhóm để chia tải, khác nhóm để nhận độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1066,7 +1066,7 @@ menu:
     summary: ''
   - slug: consumer-groups-003
     title: Nhóm có tên và nhóm ẩn danh
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1075,7 +1075,7 @@ menu:
     summary: ''
   - slug: consumer-groups-004
     title: Đăng ký bền vững và hành vi khi ứng dụng tạm dừng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1084,7 +1084,7 @@ menu:
     summary: ''
   - slug: consumer-groups-005
     title: Mở rộng nhiều instance và cấu hình concurrency
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1093,7 +1093,7 @@ menu:
     summary: ''
   - slug: consumer-groups-006
     title: Phân biệt số instance, luồng nhận và số phân vùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1102,7 +1102,7 @@ menu:
     summary: ''
   - slug: consumer-groups-007
     title: requiredGroups và điều kiện áp dụng theo binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1111,7 +1111,7 @@ menu:
     summary: ''
   - slug: consumer-groups-008
     title: Thay đổi tên nhóm, khởi động lại và nguy cơ xử lý lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1120,7 +1120,7 @@ menu:
     summary: ''
   - slug: consumer-groups-009
     title: Thực nghiệm phân phối thông điệp giữa nhiều nhóm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1132,7 +1132,7 @@ menu:
   childs:
   - slug: partitioning-001
     title: Phân vùng để gom thông điệp theo khóa nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1141,7 +1141,7 @@ menu:
     summary: ''
   - slug: partitioning-002
     title: Chọn khóa theo người dùng, đơn hàng hoặc thiết bị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1150,7 +1150,7 @@ menu:
     summary: ''
   - slug: partitioning-003
     title: Cấu hình partitionKeyExpression và partitionCount
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1159,7 +1159,7 @@ menu:
     summary: ''
   - slug: partitioning-004
     title: Tùy biến PartitionKeyExtractorStrategy và PartitionSelectorStrategy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1168,7 +1168,7 @@ menu:
     summary: ''
   - slug: partitioning-005
     title: Cấu hình phía nhận với partitioned, instanceCount và instanceIndex
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1177,7 +1177,7 @@ menu:
     summary: ''
   - slug: partitioning-006
     title: Khác biệt phân vùng trên Kafka và RabbitMQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1186,7 +1186,7 @@ menu:
     summary: ''
   - slug: partitioning-007
     title: Phân biệt khóa phân vùng của Stream với khóa bản ghi Kafka
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1195,7 +1195,7 @@ menu:
     summary: ''
   - slug: partitioning-008
     title: Thứ tự theo khóa và giới hạn khi xử lý bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1204,7 +1204,7 @@ menu:
     summary: ''
   - slug: partitioning-009
     title: Khóa lệch tải, phân vùng nóng và chiến lược phân phối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1213,7 +1213,7 @@ menu:
     summary: ''
   - slug: partitioning-010
     title: Thay đổi số phân vùng và đánh giá tác động đến ánh xạ khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1225,7 +1225,7 @@ menu:
   childs:
   - slug: reactive-processing-001
     title: Phân biệt hàm xử lý từng thông điệp với hàm nối các luồng dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1234,7 +1234,7 @@ menu:
     summary: ''
   - slug: reactive-processing-002
     title: Xây dựng Function<Flux<T>, Flux<R>>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1243,7 +1243,7 @@ menu:
     summary: ''
   - slug: reactive-processing-003
     title: Supplier<Flux<T>> và vòng đời đăng ký luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1252,7 +1252,7 @@ menu:
     summary: ''
   - slug: reactive-processing-004
     title: Consumer<Flux<T>> và phương án Function<Flux<T>, Mono<Void>>
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1261,7 +1261,7 @@ menu:
     summary: ''
   - slug: reactive-processing-005
     title: Đánh giá áp lực ngược (backpressure) theo khả năng thực tế của binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1270,7 +1270,7 @@ menu:
     summary: ''
   - slug: reactive-processing-006
     title: map, flatMap và concatMap trong bảo toàn thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1279,7 +1279,7 @@ menu:
     summary: ''
   - slug: reactive-processing-007
     title: Tách thao tác chặn luồng và chọn Scheduler phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1288,7 +1288,7 @@ menu:
     summary: ''
   - slug: reactive-processing-008
     title: Xử lý lỗi bằng onErrorResume, retryWhen và phạm vi phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1297,7 +1297,7 @@ menu:
     summary: ''
   - slug: reactive-processing-009
     title: Quản lý bộ đệm, tốc độ phát và giới hạn số tác vụ đồng thời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1306,7 +1306,7 @@ menu:
     summary: ''
   - slug: reactive-processing-010
     title: Phân biệt reactive function với Reactive Kafka Binder và kiểm tra tình trạng hỗ trợ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1315,7 +1315,7 @@ menu:
     summary: ''
   - slug: reactive-processing-011
     title: Truyền ngữ cảnh và quan sát theo từng phần tử trong luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1327,7 +1327,7 @@ menu:
   childs:
   - slug: pollable-consumers-001
     title: Phân biệt nhận do sự kiện, Supplier poller và pollable consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1336,7 +1336,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-002
     title: Khai báo pollable-source và tạo PollableMessageSource
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1345,7 +1345,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-003
     title: Chủ động gọi poll và xử lý trạng thái không có thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1354,7 +1354,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-004
     title: Chuyển đổi kiểu khi đọc thông điệp chủ động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1363,7 +1363,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-005
     title: Xác nhận tự động và quản lý AcknowledgmentCallback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1372,7 +1372,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-006
     title: Chấp nhận, từ chối hoặc đưa lại thông điệp theo khả năng binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1381,7 +1381,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-007
     title: Xử lý lỗi và kênh lỗi của nguồn pollable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1390,7 +1390,7 @@ menu:
     summary: ''
   - slug: pollable-consumers-008
     title: Quản lý lịch đọc, luồng thực thi và dừng vòng lặp an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1402,7 +1402,7 @@ menu:
   childs:
   - slug: error-handling-001
     title: Phân loại lỗi chuyển đổi, lỗi nghiệp vụ và lỗi hạ tầng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1411,7 +1411,7 @@ menu:
     summary: ''
   - slug: error-handling-002
     title: Đường đi của exception từ hàm tới binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1420,7 +1420,7 @@ menu:
     summary: ''
   - slug: error-handling-003
     title: Cấu hình maxAttempts và các khoảng chờ backoff
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1429,7 +1429,7 @@ menu:
     summary: ''
   - slug: error-handling-004
     title: Chọn exception được thử lại và exception không được thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1438,7 +1438,7 @@ menu:
     summary: ''
   - slug: error-handling-005
     title: Tùy biến RetryTemplate và gắn với binding cụ thể
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1447,7 +1447,7 @@ menu:
     summary: ''
   - slug: error-handling-006
     title: Consumer<ErrorMessage> và error-handler-definition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1456,7 +1456,7 @@ menu:
     summary: ''
   - slug: error-handling-007
     title: Tác động của error handler riêng đến cơ chế DLQ mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1465,7 +1465,7 @@ menu:
     summary: ''
   - slug: error-handling-008
     title: DLQ, DLT và điều kiện cấu hình theo từng binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1474,7 +1474,7 @@ menu:
     summary: ''
   - slug: error-handling-009
     title: Giữ nguyên payload và metadata phục vụ điều tra
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1483,7 +1483,7 @@ menu:
     summary: ''
   - slug: error-handling-010
     title: Chặn vòng lặp thử lại và cô lập thông điệp gây lỗi lặp lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1492,7 +1492,7 @@ menu:
     summary: ''
   - slug: error-handling-011
     title: Xây dựng quy trình sửa lỗi, phát lại và đối soát thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1504,7 +1504,7 @@ menu:
   childs:
   - slug: delivery-reliability-001
     title: Xác định điểm hoàn tất nghiệp vụ và thời điểm xác nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1513,7 +1513,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-002
     title: Thiết kế xử lý lặp an toàn (idempotency) bằng event ID
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1522,7 +1522,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-003
     title: Bảng inbox, khóa duy nhất và kiểm soát thông điệp trùng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1531,7 +1531,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-004
     title: Khoảng hở giữa ghi cơ sở dữ liệu và phát sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1540,7 +1540,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-005
     title: Mẫu transactional outbox và tích hợp bộ chuyển tiếp sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1549,7 +1549,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-006
     title: Phạm vi giao dịch broker và giới hạn exactly-once đầu cuối
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1558,7 +1558,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-007
     title: Xử lý sự kiện đến muộn, sai thứ tự và thiếu sự kiện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1567,7 +1567,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-008
     title: Phát lại dữ liệu mà không lặp tác dụng phụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1576,7 +1576,7 @@ menu:
     summary: ''
   - slug: delivery-reliability-009
     title: Đối soát dữ liệu và phục hồi sau lỗi một phần
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1588,7 +1588,7 @@ menu:
   childs:
   - slug: kafka-binder-001
     title: Ánh xạ destination, group và partition sang mô hình Kafka
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1597,7 +1597,7 @@ menu:
     summary: ''
   - slug: kafka-binder-002
     title: Kết nối broker và phân cấp cấu hình Kafka Binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1606,7 +1606,7 @@ menu:
     summary: ''
   - slug: kafka-binder-003
     title: Cấp phát topic và kiểm soát autoCreateTopics, autoAddPartitions
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1615,7 +1615,7 @@ menu:
     summary: ''
   - slug: kafka-binder-004
     title: Cấu hình số phân vùng, hệ số sao chép và thuộc tính topic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1624,7 +1624,7 @@ menu:
     summary: ''
   - slug: kafka-binder-005
     title: Sử dụng topic có sẵn và phân quyền quản trị tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1633,7 +1633,7 @@ menu:
     summary: ''
   - slug: kafka-binder-006
     title: Nhận từ nhiều topic hoặc mẫu tên topic
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1642,7 +1642,7 @@ menu:
     summary: ''
   - slug: kafka-binder-007
     title: Ánh xạ KafkaHeaders và metadata topic, partition, offset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1651,7 +1651,7 @@ menu:
     summary: ''
   - slug: kafka-binder-008
     title: Tombstone, KafkaNull và sự kiện xóa dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1660,7 +1660,7 @@ menu:
     summary: ''
   - slug: kafka-binder-009
     title: Phân biệt Kafka Binder thông thường với Kafka Streams Binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1672,7 +1672,7 @@ menu:
   childs:
   - slug: kafka-consumption-001
     title: Luồng poll, listener container và hàm consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1681,7 +1681,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-002
     title: Consumer group, phân công partition và tái cân bằng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1690,7 +1690,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-003
     title: startOffset, offset đã lưu và chính sách khi chưa có offset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1699,7 +1699,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-004
     title: Reset offset và phát lại dữ liệu có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1708,7 +1708,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-005
     title: Chế độ ackMode và thời điểm commit offset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1717,7 +1717,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-006
     title: Xác nhận thủ công bằng KafkaHeaders.ACKNOWLEDGMENT
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1726,7 +1726,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-007
     title: Cấu hình concurrency và giới hạn theo số partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1735,7 +1735,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-008
     title: Nhận theo lô với batch-mode và List payload
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1744,7 +1744,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-009
     title: Đối chiếu header theo phần tử trong lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1753,7 +1753,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-010
     title: max.poll.records, max.poll.interval.ms và thời gian xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1762,7 +1762,7 @@ menu:
     summary: ''
   - slug: kafka-consumption-011
     title: Tạm dừng, tiếp tục nhận và theo dõi consumer nhàn rỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1774,7 +1774,7 @@ menu:
   childs:
   - slug: kafka-production-001
     title: Chọn khóa bản ghi bằng messageKeyExpression hoặc Kafka header
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1783,7 +1783,7 @@ menu:
     summary: ''
   - slug: kafka-production-002
     title: Chọn topic và partition cho từng thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1792,7 +1792,7 @@ menu:
     summary: ''
   - slug: kafka-production-003
     title: Cấu hình serializer với native encoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1801,7 +1801,7 @@ menu:
     summary: ''
   - slug: kafka-production-004
     title: acks, retries, idempotence và giới hạn bảo đảm của producer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1810,7 +1810,7 @@ menu:
     summary: ''
   - slug: kafka-production-005
     title: Gửi đồng bộ, gửi bất đồng bộ và timeout
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1819,7 +1819,7 @@ menu:
     summary: ''
   - slug: kafka-production-006
     title: Nhận kết quả gửi, metadata bản ghi và lỗi gửi bất đồng bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1828,7 +1828,7 @@ menu:
     summary: ''
   - slug: kafka-production-007
     title: Batching, linger, compression và kích thước bản ghi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1837,7 +1837,7 @@ menu:
     summary: ''
   - slug: kafka-production-008
     title: Header mapper và tương tác với ứng dụng Kafka ngoài Spring
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1846,7 +1846,7 @@ menu:
     summary: ''
   - slug: kafka-production-009
     title: Tùy biến ProducerFactory và Kafka client theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1858,7 +1858,7 @@ menu:
   childs:
   - slug: kafka-transactions-001
     title: Bật transactional binder bằng transactionIdPrefix
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1867,7 +1867,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-002
     title: Giao dịch trong chuỗi nhận, xử lý và phát thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1876,7 +1876,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-003
     title: Commit offset cùng kết quả phát trong một giao dịch Kafka
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1885,7 +1885,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-004
     title: Producer chỉ phát và cách xác định ranh giới giao dịch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1894,7 +1894,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-005
     title: isolation.level và đọc dữ liệu đã commit
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1903,7 +1903,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-006
     title: Mã giao dịch duy nhất giữa các instance và lỗi producer fencing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1912,7 +1912,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-007
     title: Rollback, AfterRollbackProcessor và thử lại sau rollback
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1921,7 +1921,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-008
     title: Phân biệt giao dịch Kafka với giao dịch cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1930,7 +1930,7 @@ menu:
     summary: ''
   - slug: kafka-transactions-009
     title: Giới hạn exactly-once khi gọi dịch vụ hoặc tạo tác dụng phụ ngoài Kafka
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1942,7 +1942,7 @@ menu:
   childs:
   - slug: kafka-recovery-001
     title: Cấu hình enableDlq, dlqName và yêu cầu consumer group
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1951,7 +1951,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-002
     title: Chọn destination và partition cho bản ghi lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1960,7 +1960,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-003
     title: Serializer của DLT khi sử dụng native decoding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1969,7 +1969,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-004
     title: Phân biệt lỗi deserialization với lỗi trong hàm nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1978,7 +1978,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-005
     title: Chọn xử lý lỗi tại binder hoặc listener container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1987,7 +1987,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-006
     title: Giới hạn thử lại và đưa DLT khi nhận theo lô
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -1996,7 +1996,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-007
     title: Lưu metadata lỗi và truy vết bản ghi gốc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2005,7 +2005,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-008
     title: Phát lại DLT có giới hạn số lần và nơi cách ly cuối cùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2014,7 +2014,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-009
     title: Reset offset để phục hồi và đánh giá phạm vi ảnh hưởng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2023,7 +2023,7 @@ menu:
     summary: ''
   - slug: kafka-recovery-010
     title: Thực nghiệm lỗi tiến trình trước và sau commit offset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2035,7 +2035,7 @@ menu:
   childs:
   - slug: rabbitmq-binder-001
     title: Ánh xạ destination sang exchange và group sang queue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2044,7 +2044,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-002
     title: Kết nối RabbitMQ, virtual host và cấu hình ConnectionFactory
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2053,7 +2053,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-003
     title: Tên exchange, tên queue và các tiền tố tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2062,7 +2062,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-004
     title: Exchange type, binding routing key và routingKeyExpression
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2071,7 +2071,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-005
     title: Hàng đợi bền vững, nhóm ẩn danh và auto-delete
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2080,7 +2080,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-006
     title: Sử dụng exchange hoặc queue có sẵn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2089,7 +2089,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-007
     title: Quorum queue và lựa chọn kiểu queue theo nhu cầu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2098,7 +2098,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-008
     title: TTL, thời hạn queue, giới hạn độ dài và overflow
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2107,7 +2107,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-009
     title: Listener container, concurrency và prefetch
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2116,7 +2116,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-010
     title: Nhận theo lô, phát theo lô và giới hạn kích thước thông điệp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2125,7 +2125,7 @@ menu:
     summary: ''
   - slug: rabbitmq-binder-011
     title: Phân vùng ứng dụng và single-active-consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2137,7 +2137,7 @@ menu:
   childs:
   - slug: rabbitmq-reliability-001
     title: Chế độ xác nhận AUTO, MANUAL và NONE
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2146,7 +2146,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-002
     title: Phân biệt ack, nack, reject và requeue
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2155,7 +2155,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-003
     title: Publisher confirms, publisher returns và thông điệp không có đích nhận
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2164,7 +2164,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-004
     title: Delivery mode và điều kiện lưu thông điệp bền vững
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2173,7 +2173,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-005
     title: Giao dịch AMQP và giới hạn khi phối hợp cơ sở dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2182,7 +2182,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-006
     title: autoBindDlq, dead-letter exchange và dead-letter routing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2191,7 +2191,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-007
     title: republishToDlq và metadata exception
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2200,7 +2200,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-008
     title: Tương tác giữa maxAttempts, requeueRejected và republishToDlq
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2209,7 +2209,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-009
     title: Giới hạn header lỗi và frameMaxHeadroom
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2218,7 +2218,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-010
     title: Phát lại qua TTL, hàng đợi thử lại và hàng đợi cách ly
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2227,7 +2227,7 @@ menu:
     summary: ''
   - slug: rabbitmq-reliability-011
     title: Xử lý mất kết nối, khôi phục consumer và giới hạn redelivery
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2239,7 +2239,7 @@ menu:
   childs:
   - slug: kafka-streams-001
     title: Khi nào cần Kafka Streams Binder thay cho Kafka Binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2248,7 +2248,7 @@ menu:
     summary: ''
   - slug: kafka-streams-002
     title: Topology xử lý và vai trò applicationId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2257,7 +2257,7 @@ menu:
     summary: ''
   - slug: kafka-streams-003
     title: Binding cho KStream, KTable và GlobalKTable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2266,7 +2266,7 @@ menu:
     summary: ''
   - slug: kafka-streams-004
     title: Function, Consumer, BiFunction và hàm nhiều đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2275,7 +2275,7 @@ menu:
     summary: ''
   - slug: kafka-streams-005
     title: Hàm curried cho topology có nhiều hơn hai đầu vào
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2284,7 +2284,7 @@ menu:
     summary: ''
   - slug: kafka-streams-006
     title: Nhiều đầu ra bằng KStream[] và phân nhánh dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2293,7 +2293,7 @@ menu:
     summary: ''
   - slug: kafka-streams-007
     title: Ghép hàm được hỗ trợ và tên binding của topology ghép
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2302,7 +2302,7 @@ menu:
     summary: ''
   - slug: kafka-streams-008
     title: Suy luận Serde và cấu hình keySerde, valueSerde
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2311,7 +2311,7 @@ menu:
     summary: ''
   - slug: kafka-streams-009
     title: Phân biệt native Serde với chuyển đổi của framework
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2320,7 +2320,7 @@ menu:
     summary: ''
   - slug: kafka-streams-010
     title: Liên kết tham số hàm với đúng destination và applicationId
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2332,7 +2332,7 @@ menu:
   childs:
   - slug: stateful-stream-processing-001
     title: Biến đổi không trạng thái trong topology Kafka Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2341,7 +2341,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-002
     title: Đổi khóa, repartition và yêu cầu đồng phân vùng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2350,7 +2350,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-003
     title: Gom nhóm, đếm và tổng hợp theo khóa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2359,7 +2359,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-004
     title: Phép nối KStream, KTable và GlobalKTable
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2368,7 +2368,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-005
     title: Event time, processing time và TimestampExtractor
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2377,7 +2377,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-006
     title: Cửa sổ tumbling, hopping, sliding và session
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2386,7 +2386,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-007
     title: Grace period, dữ liệu đến muộn và kết quả cửa sổ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2395,7 +2395,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-008
     title: Khai báo state store và materializedAs
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2404,7 +2404,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-009
     title: Changelog, bộ nhớ đệm và khôi phục trạng thái
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2413,7 +2413,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-010
     title: InteractiveQueryService và giới hạn truy vấn trạng thái cục bộ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2422,7 +2422,7 @@ menu:
     summary: ''
   - slug: stateful-stream-processing-011
     title: Định tuyến truy vấn đến instance giữ state store phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2434,7 +2434,7 @@ menu:
   childs:
   - slug: kafka-streams-operations-001
     title: Cấu hình StreamsBuilderFactoryBean và Kafka Streams client
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2443,7 +2443,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-002
     title: Số luồng xử lý, task, standby replica và phạm vi mở rộng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2452,7 +2452,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-003
     title: Thư mục trạng thái, dung lượng đĩa và thời gian phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2461,7 +2461,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-004
     title: Xử lý lỗi deserialization, processing và production
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2470,7 +2470,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-005
     title: Cấu hình DLQ và xác định phạm vi bảo vệ của từng loại lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2479,7 +2479,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-006
     title: processing.guarantee và bảo đảm trong topology
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2488,7 +2488,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-007
     title: Khởi động, dừng binding và giới hạn điều khiển vòng đời
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2497,7 +2497,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-008
     title: Theo dõi topology, trạng thái luồng và chỉ số state store
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2506,7 +2506,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-009
     title: Đổi applicationId, reset ứng dụng và nâng cấp topology an toàn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2515,7 +2515,7 @@ menu:
     summary: ''
   - slug: kafka-streams-operations-010
     title: Kiểm thử topology bằng TopologyTestDriver
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2527,7 +2527,7 @@ menu:
   childs:
   - slug: pulsar-binder-001
     title: Chọn artifact và phiên bản Pulsar Binder tương thích
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2536,7 +2536,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-002
     title: Kết nối Pulsar service URL và administration URL
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2545,7 +2545,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-003
     title: Ánh xạ destination, group và subscription
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2554,7 +2554,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-004
     title: Kiểu subscription và ảnh hưởng đến chia tải, thứ tự
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2563,7 +2563,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-005
     title: Tự cấp phát topic và cấu hình số partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2572,7 +2572,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-006
     title: Chuyển đổi của framework và native Pulsar Schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2581,7 +2581,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-007
     title: Cấu hình schema-type, message-type và kiểu khóa, giá trị
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2590,7 +2590,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-008
     title: Ánh xạ header và tùy biến PulsarHeaderMapper
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2599,7 +2599,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-009
     title: Thứ tự ưu tiên cấu hình Spring Boot, binder và binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2608,7 +2608,7 @@ menu:
     summary: ''
   - slug: pulsar-binder-010
     title: Kiểm tra cơ chế ack, redelivery và DLQ theo phiên bản binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2620,7 +2620,7 @@ menu:
   childs:
   - slug: multiple-binders-001
     title: Nhiều loại binder trên classpath và lựa chọn defaultBinder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2629,7 +2629,7 @@ menu:
     summary: ''
   - slug: multiple-binders-002
     title: Khai báo tên cấu hình binder và gắn binder cho từng binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2638,7 +2638,7 @@ menu:
     summary: ''
   - slug: multiple-binders-003
     title: Nhiều Kafka cluster hoặc nhiều RabbitMQ virtual host
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2647,7 +2647,7 @@ menu:
     summary: ''
   - slug: multiple-binders-004
     title: Binder environment, ngữ cảnh riêng và kế thừa cấu hình
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2656,7 +2656,7 @@ menu:
     summary: ''
   - slug: multiple-binders-005
     title: Luồng nhận từ Kafka và phát sang RabbitMQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2665,7 +2665,7 @@ menu:
     summary: ''
   - slug: multiple-binders-006
     title: Chọn binder khi gửi StreamBridge đến destination động
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2674,7 +2674,7 @@ menu:
     summary: ''
   - slug: multiple-binders-007
     title: Chuyển đổi định dạng, khóa và header giữa các hệ thống
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2683,7 +2683,7 @@ menu:
     summary: ''
   - slug: multiple-binders-008
     title: Giới hạn giao dịch và bảo đảm giao nhận khi bắc cầu broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2692,7 +2692,7 @@ menu:
     summary: ''
   - slug: multiple-binders-009
     title: Đánh giá binder đối tác như Azure Event Hubs, Pub/Sub và Solace
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2704,7 +2704,7 @@ menu:
   childs:
   - slug: testing-001
     title: Phân tầng kiểm thử hàm, binding và broker thực
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2713,7 +2713,7 @@ menu:
     summary: ''
   - slug: testing-002
     title: Thiết lập spring-cloud-stream-test-binder và @EnableTestBinder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2722,7 +2722,7 @@ menu:
     summary: ''
   - slug: testing-003
     title: Đưa dữ liệu vào bằng InputDestination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2731,7 +2731,7 @@ menu:
     summary: ''
   - slug: testing-004
     title: Đọc và kiểm tra kết quả bằng OutputDestination
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2740,7 +2740,7 @@ menu:
     summary: ''
   - slug: testing-005
     title: Chỉ định destination khi kiểm thử nhiều hàm hoặc nhiều binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2749,7 +2749,7 @@ menu:
     summary: ''
   - slug: testing-006
     title: Kiểm thử JSON, contentType, header và lỗi chuyển đổi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2758,7 +2758,7 @@ menu:
     summary: ''
   - slug: testing-007
     title: Kiểm thử ghép hàm, định tuyến và StreamBridge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2767,7 +2767,7 @@ menu:
     summary: ''
   - slug: testing-008
     title: Kiểm thử thử lại, error handler và đường đưa thông điệp lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2776,7 +2776,7 @@ menu:
     summary: ''
   - slug: testing-009
     title: Giới hạn Test Binder với giao dịch, broker metadata và Kafka Streams
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2785,7 +2785,7 @@ menu:
     summary: ''
   - slug: testing-010
     title: Kiểm thử tích hợp Kafka, RabbitMQ hoặc Pulsar bằng Testcontainers
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2794,7 +2794,7 @@ menu:
     summary: ''
   - slug: testing-011
     title: Kiểm thử trùng lặp, sai thứ tự và hợp đồng schema
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2803,7 +2803,7 @@ menu:
     summary: ''
   - slug: testing-012
     title: Kiểm thử khởi động lại, lỗi mạng và phục hồi sau sự cố
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2812,7 +2812,7 @@ menu:
     summary: ''
   - slug: testing-013
     title: Đồng bộ kiểm thử bất đồng bộ bằng điều kiện và timeout hữu hạn
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2824,7 +2824,7 @@ menu:
   childs:
   - slug: observability-001
     title: Bật Actuator và kiểm tra sức khỏe binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2833,7 +2833,7 @@ menu:
     summary: ''
   - slug: observability-002
     title: Phân biệt sức khỏe kết nối với khả năng xử lý nghiệp vụ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2842,7 +2842,7 @@ menu:
     summary: ''
   - slug: observability-003
     title: Quan sát binding bằng endpoint bindings
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2851,7 +2851,7 @@ menu:
     summary: ''
   - slug: observability-004
     title: Điều khiển STARTED, STOPPED, PAUSED và RESUMED theo khả năng binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2860,7 +2860,7 @@ menu:
     summary: ''
   - slug: observability-005
     title: Đo tốc độ, độ trễ xử lý, số lỗi và số lần thử lại
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2869,7 +2869,7 @@ menu:
     summary: ''
   - slug: observability-006
     title: Theo dõi Kafka consumer lag, RabbitMQ queue depth và DLQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2878,7 +2878,7 @@ menu:
     summary: ''
   - slug: observability-007
     title: Micrometer Observation và theo dõi hàm xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2887,7 +2887,7 @@ menu:
     summary: ''
   - slug: observability-008
     title: Truyền trace context qua header và ranh giới luồng thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2896,7 +2896,7 @@ menu:
     summary: ''
   - slug: observability-009
     title: Quan sát reactive function theo phạm vi phần tử hoặc đoạn luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2905,7 +2905,7 @@ menu:
     summary: ''
   - slug: observability-010
     title: Log có cấu trúc với event ID, correlation ID và metadata broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2914,7 +2914,7 @@ menu:
     summary: ''
   - slug: observability-011
     title: Giới hạn nhãn metric có độ đa dạng cao
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2923,7 +2923,7 @@ menu:
     summary: ''
   - slug: observability-012
     title: Xây dựng cảnh báo và bảng theo dõi tình trạng luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2935,7 +2935,7 @@ menu:
   childs:
   - slug: security-001
     title: Xác thực và mã hóa kết nối Kafka bằng SASL, SSL và TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2944,7 +2944,7 @@ menu:
     summary: ''
   - slug: security-002
     title: Xác thực RabbitMQ, virtual host và TLS
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2953,7 +2953,7 @@ menu:
     summary: ''
   - slug: security-003
     title: Xác thực và TLS cho kết nối Pulsar
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2962,7 +2962,7 @@ menu:
     summary: ''
   - slug: security-004
     title: Phân quyền tối thiểu cho phát, nhận và cấp phát tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2971,7 +2971,7 @@ menu:
     summary: ''
   - slug: security-005
     title: Tách tài khoản quản trị khỏi tài khoản chạy ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2980,7 +2980,7 @@ menu:
     summary: ''
   - slug: security-006
     title: Quản lý mật khẩu, khóa và chứng chỉ bằng cấu hình bên ngoài
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2989,7 +2989,7 @@ menu:
     summary: ''
   - slug: security-007
     title: Bảo vệ Actuator và thao tác điều khiển binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -2998,7 +2998,7 @@ menu:
     summary: ''
   - slug: security-008
     title: Kiểm soát dữ liệu đầu vào, kiểu deserialization và header tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3007,7 +3007,7 @@ menu:
     summary: ''
   - slug: security-009
     title: Giới hạn destination động và biểu thức có thể bị điều khiển
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3016,7 +3016,7 @@ menu:
     summary: ''
   - slug: security-010
     title: Che dữ liệu nhạy cảm trong payload log, trace và DLQ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3028,7 +3028,7 @@ menu:
   childs:
   - slug: performance-001
     title: Xác lập mục tiêu thông lượng, độ trễ và độ tin cậy
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3037,7 +3037,7 @@ menu:
     summary: ''
   - slug: performance-002
     title: Đo điểm nghẽn tại broker, consumer và dịch vụ phụ thuộc
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3046,7 +3046,7 @@ menu:
     summary: ''
   - slug: performance-003
     title: Tính số partition, instance và concurrency theo tải
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3055,7 +3055,7 @@ menu:
     summary: ''
   - slug: performance-004
     title: Tối ưu batching, prefetch và giới hạn poll
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3064,7 +3064,7 @@ menu:
     summary: ''
   - slug: performance-005
     title: Đánh giá compression, kích thước payload và chi phí serialization
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3073,7 +3073,7 @@ menu:
     summary: ''
   - slug: performance-006
     title: Giới hạn hàng đợi nội bộ, bộ nhớ và số tác vụ đang xử lý
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3082,7 +3082,7 @@ menu:
     summary: ''
   - slug: performance-007
     title: Giữ thứ tự khi tăng mức xử lý song song
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3091,7 +3091,7 @@ menu:
     summary: ''
   - slug: performance-008
     title: Giảm khóa lệch tải và xử lý phân vùng nóng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3100,7 +3100,7 @@ menu:
     summary: ''
   - slug: performance-009
     title: Thiết kế kiểm thử tải với dữ liệu và lỗi đại diện
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3109,7 +3109,7 @@ menu:
     summary: ''
   - slug: performance-010
     title: So sánh cấu hình bằng số đo thay vì chỉ tăng số luồng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3121,7 +3121,7 @@ menu:
   childs:
   - slug: deployment-001
     title: Đóng gói ứng dụng Spring Boot và image container
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3130,7 +3130,7 @@ menu:
     summary: ''
   - slug: deployment-002
     title: Quản lý tài nguyên broker theo môi trường
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3139,7 +3139,7 @@ menu:
     summary: ''
   - slug: deployment-003
     title: Trình tự sẵn sàng của broker, binding và ứng dụng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3148,7 +3148,7 @@ menu:
     summary: ''
   - slug: deployment-004
     title: Liveness, readiness và ảnh hưởng của lỗi broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3157,7 +3157,7 @@ menu:
     summary: ''
   - slug: deployment-005
     title: Graceful shutdown và xử lý thông điệp đang thực thi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3166,7 +3166,7 @@ menu:
     summary: ''
   - slug: deployment-006
     title: Rolling update với cùng nhóm và tái cân bằng consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3175,7 +3175,7 @@ menu:
     summary: ''
   - slug: deployment-007
     title: Tương thích hợp đồng khi triển khai producer và consumer lệch thời điểm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3184,7 +3184,7 @@ menu:
     summary: ''
   - slug: deployment-008
     title: Tự động mở rộng theo lag hoặc độ sâu hàng đợi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3193,7 +3193,7 @@ menu:
     summary: ''
   - slug: deployment-009
     title: Phục hồi khi mất broker, mất instance hoặc đầy đĩa
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3202,7 +3202,7 @@ menu:
     summary: ''
   - slug: deployment-010
     title: Vai trò triển khai pipeline của Spring Cloud Data Flow và giới hạn phạm vi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3214,7 +3214,7 @@ menu:
   childs:
   - slug: scaling-001
     title: Tùy biến listener container bằng ListenerContainerCustomizer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3223,7 +3223,7 @@ menu:
     summary: ''
   - slug: scaling-002
     title: Tùy biến nguồn pollable bằng MessageSourceCustomizer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3232,7 +3232,7 @@ menu:
     summary: ''
   - slug: scaling-003
     title: Áp dụng ChannelInterceptor và GlobalChannelInterceptor đúng binding
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3241,7 +3241,7 @@ menu:
     summary: ''
   - slug: scaling-004
     title: Tùy biến binder trong ứng dụng nhiều binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3250,7 +3250,7 @@ menu:
     summary: ''
   - slug: scaling-005
     title: Đăng ký converter, header mapper và chiến lược phân vùng riêng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3259,7 +3259,7 @@ menu:
     summary: ''
   - slug: scaling-006
     title: Binder SPI và hợp đồng bindConsumer, bindProducer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3268,7 +3268,7 @@ menu:
     summary: ''
   - slug: scaling-007
     title: ProvisioningProvider và vòng đời tài nguyên của custom binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3277,7 +3277,7 @@ menu:
     summary: ''
   - slug: scaling-008
     title: Đăng ký binder qua META-INF/spring.binders
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3286,7 +3286,7 @@ menu:
     summary: ''
   - slug: scaling-009
     title: Khi nào nên viết binder và khi nào nên dùng thư viện broker trực tiếp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3298,7 +3298,7 @@ menu:
   childs:
   - slug: upgrades-001
     title: Đọc tài liệu đúng phiên bản và ma trận tương thích Spring Cloud
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3307,7 +3307,7 @@ menu:
     summary: ''
   - slug: upgrades-002
     title: Nhận diện mã cũ dùng @EnableBinding, @StreamListener, Source, Processor và Sink
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3316,7 +3316,7 @@ menu:
     summary: ''
   - slug: upgrades-003
     title: Chuyển mô hình annotation cũ sang Supplier, Function và Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3325,7 +3325,7 @@ menu:
     summary: ''
   - slug: upgrades-004
     title: Chuyển tên input, output cũ sang tên binding theo hàm
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3334,7 +3334,7 @@ menu:
     summary: ''
   - slug: upgrades-005
     title: Đối chiếu thuộc tính đổi tên, hết khuyến nghị hoặc đã bị loại bỏ
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3343,7 +3343,7 @@ menu:
     summary: ''
   - slug: upgrades-006
     title: Đánh giá thay đổi serialization, header mapper và error handler
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3352,7 +3352,7 @@ menu:
     summary: ''
   - slug: upgrades-007
     title: Kiểm tra tình trạng hỗ trợ Reactive Kafka Binder và lựa chọn thay thế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3361,7 +3361,7 @@ menu:
     summary: ''
   - slug: upgrades-008
     title: Kiểm thử hồi quy hợp đồng, offset, DLQ và giao dịch khi nâng cấp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3370,7 +3370,7 @@ menu:
     summary: ''
   - slug: upgrades-009
     title: Triển khai thử, theo dõi chỉ số và lập phương án quay lại phiên bản trước
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3382,7 +3382,7 @@ menu:
   childs:
   - slug: troubleshooting-001
     title: Ứng dụng khởi động nhưng hàm không được liên kết
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3391,7 +3391,7 @@ menu:
     summary: ''
   - slug: troubleshooting-002
     title: Không tìm thấy binder hoặc không xác định được binder mặc định
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3400,7 +3400,7 @@ menu:
     summary: ''
   - slug: troubleshooting-003
     title: Gửi thành công cục bộ nhưng broker hoặc consumer chưa nhận dữ liệu
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3409,7 +3409,7 @@ menu:
     summary: ''
   - slug: troubleshooting-004
     title: Consumer không nhận do sai destination, group hoặc routing key
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3418,7 +3418,7 @@ menu:
     summary: ''
   - slug: troubleshooting-005
     title: JSON không chuyển đổi được, sai kiểu hoặc mất contentType
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3427,7 +3427,7 @@ menu:
     summary: ''
   - slug: troubleshooting-006
     title: Header, khóa hoặc metadata biến mất khi qua broker
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3436,7 +3436,7 @@ menu:
     summary: ''
   - slug: troubleshooting-007
     title: Consumer bị rebalance liên tục hoặc chậm commit offset
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3445,7 +3445,7 @@ menu:
     summary: ''
   - slug: troubleshooting-008
     title: Thông điệp lặp lại, sai thứ tự hoặc dồn vào một partition
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3454,7 +3454,7 @@ menu:
     summary: ''
   - slug: troubleshooting-009
     title: Thử lại vô hạn, DLQ không có dữ liệu hoặc phát lại tạo vòng lặp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3463,7 +3463,7 @@ menu:
     summary: ''
   - slug: troubleshooting-010
     title: Giao dịch bị rollback, timeout hoặc producer fencing
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3472,7 +3472,7 @@ menu:
     summary: ''
   - slug: troubleshooting-011
     title: Reactive pipeline ngừng xử lý hoặc không có subscriber
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3481,7 +3481,7 @@ menu:
     summary: ''
   - slug: troubleshooting-012
     title: Xung đột khai báo RabbitMQ queue, exchange hoặc thuộc tính tài nguyên
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3490,7 +3490,7 @@ menu:
     summary: ''
   - slug: troubleshooting-013
     title: Kafka Streams thiếu Serde, state store chưa sẵn sàng hoặc lỗi phục hồi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3499,7 +3499,7 @@ menu:
     summary: ''
   - slug: troubleshooting-014
     title: Phân biệt lỗi ứng dụng, cấu hình, broker và mạng bằng bằng chứng
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3511,7 +3511,7 @@ menu:
   childs:
   - slug: end-to-end-exercise-001
     title: Luồng chuẩn hóa dữ liệu với Supplier, Function và Consumer
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3520,7 +3520,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-002
     title: Phát sự kiện đơn hàng từ REST bằng StreamBridge
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3529,7 +3529,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-003
     title: Hai nhóm thanh toán và thông báo nhận sự kiện độc lập
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3538,7 +3538,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-004
     title: Xử lý đơn hàng đúng thứ tự theo khóa với nhiều instance
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3547,7 +3547,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-005
     title: Consumer lặp an toàn với inbox và ràng buộc duy nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3556,7 +3556,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-006
     title: Phối hợp cơ sở dữ liệu và sự kiện bằng transactional outbox
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3565,7 +3565,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-007
     title: Đưa sự kiện lỗi vào DLQ và phát lại có kiểm soát
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3574,7 +3574,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-008
     title: Bắc cầu Kafka và RabbitMQ với hợp đồng dữ liệu thống nhất
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3583,7 +3583,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-009
     title: Tổng hợp dữ liệu thiết bị theo cửa sổ bằng Kafka Streams Binder
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3592,7 +3592,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-010
     title: Tích hợp Pulsar Binder với schema và subscription phù hợp
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3601,7 +3601,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-011
     title: Đo tải, theo dõi lag và kiểm chứng phục hồi sau lỗi
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
@@ -3610,7 +3610,7 @@ menu:
     summary: ''
   - slug: end-to-end-exercise-012
     title: Đánh giá lựa chọn binder và bảo đảm giao nhận cho một bài toán thực tế
-    status: ''
+    status: WRITTEN
     difficult: ''
     focus: ''
     problemSolved: ''
